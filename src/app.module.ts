@@ -4,7 +4,10 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SchoolsModule } from './schools/schools.module';
-import { CbcStudentsModule } from './cbc-students/cbc-students.module';
+import { StudentsModule } from './students/students.module';
+import { AscgProfileModule } from './ascg-profile/ascg-profile.module';
+import { CbcProfileModule } from './cbc-profile/cbc-profile.module';
+import { ProgramsModule } from './programs/programs.module';
 
 @Module({
   imports: [
@@ -16,17 +19,16 @@ import { CbcStudentsModule } from './cbc-students/cbc-students.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.getOrThrow<string>('DB_HOST'),
-        port: configService.getOrThrow<number>('DB_PORT'),
-        database: configService.getOrThrow<string>('DB_DATABASE'),
-        username: configService.getOrThrow<string>('DB_USERNAME'),
-        password: configService.getOrThrow<string>('DB_PASSWORD'),
+        url: configService.getOrThrow<string>('CONNECTION_STRING'),
         autoLoadEntities: true,
         synchronize: true,
       }),
     }),
     SchoolsModule,
-    CbcStudentsModule
+    StudentsModule,
+    AscgProfileModule,
+    CbcProfileModule,
+    ProgramsModule
   ],
   controllers: [AppController],
   providers: [AppService],

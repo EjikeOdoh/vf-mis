@@ -1,7 +1,7 @@
-import { Category } from "src/common/enum";
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Category, Program } from "src/common/enum";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
+@Entity('schools')
 export class School {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
@@ -11,4 +11,7 @@ export class School {
 
     @Column({ type: 'enum', enum: Category })
     category!: string;
+
+    @Column({ type: 'enum', enum: Program, default: Program.ASCG })
+    program!: Program;
 }

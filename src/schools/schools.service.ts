@@ -20,10 +20,11 @@ export class SchoolsService {
 
   async findAll(category: string) {
     if (category) {
-      return await this.schoolRepo.find({ where: { category } })
+      return await this.schoolRepo.findAndCount({ where: { category } });
     }
 
-    return await this.schoolRepo.find();
+    return await this.schoolRepo.findAndCount();
+
   }
 
 
