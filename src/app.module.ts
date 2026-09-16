@@ -12,6 +12,7 @@ import { AscgParticipationModule } from './ascg-participation/ascg-participation
 import { CbcParticipationModule } from './cbc-participation/cbc-participation.module';
 import { ScParticipationModule } from './sc-participation/sc-participation.module';
 import { ProgramParticipationModule } from './program-participation/program-participation.module';
+import { TracksModule } from './tracks/tracks.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { ProgramParticipationModule } from './program-participation/program-part
     AscgParticipationModule,
     CbcParticipationModule,
     ScParticipationModule,
-    ProgramParticipationModule
+    ProgramParticipationModule,
+    TracksModule
   ],
   controllers: [AppController],
   providers: [AppService],

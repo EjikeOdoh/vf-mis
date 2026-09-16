@@ -60,7 +60,7 @@ export class AscgProfile {
     @Column({ type: 'varchar', nullable: true })
     careerChoice2?: string;
 
-    @OneToOne(()=>Student, (student)=>student.ascgProfile, {nullable: false, onDelete:'CASCADE'})
-    @JoinColumn({name: 'student_id'})
+    @OneToOne(() => Student, (student) => student.ascgProfile, { nullable: false, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'student_id' })
     student!: Student;
 }
