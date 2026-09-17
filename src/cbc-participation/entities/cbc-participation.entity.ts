@@ -1,3 +1,4 @@
+import { Cohort } from "src/common/enum";
 import { Student } from "src/students/entities/student.entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -12,6 +13,12 @@ export class CbcParticipation {
     @ManyToOne(() => Student, (student) => student.cbcParticipation, { nullable: false, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'student_id' })
     student!: Student;
+
+    @Column({ type: 'enum', enum: Cohort, nullable: false })
+    cohort!: Cohort;
+
+    @Column('varchar')
+    track!: string;
 
     @Column({ type: 'integer', nullable: false })
     year!: number;

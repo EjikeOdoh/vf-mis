@@ -1,3 +1,4 @@
+import { CampType } from "src/common/enum";
 import { Student } from "src/students/entities/student.entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -12,6 +13,9 @@ export class ScParticipation {
     @ManyToOne(() => Student, (student) => student.scParticipation, { nullable: false, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'student_id' })
     student!: Student;
+
+    @Column({ type: 'enum', enum: CampType, nullable: false })
+    type!: CampType;
 
     @Column({ type: 'integer', nullable: false })
     year!: number;

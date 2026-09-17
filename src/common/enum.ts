@@ -1,13 +1,13 @@
 export enum Category {
-    JUNIOR = 'junior',
-    SENIOR = 'senior'
+  JUNIOR = 'junior',
+  SENIOR = 'senior'
 }
 
 export enum Program {
-    ASCG = 'ascg',
-    CBC = 'cbc',
-    SC = 'sc',
-    OUTREACH = 'outreach'
+  ASCG = 'ascg',
+  CBC = 'cbc',
+  SC = 'sc',
+  OUTREACH = 'outreach'
 }
 
 export enum PriorTechEducation {
@@ -46,3 +46,15 @@ export enum TechEngagement {
   NOT_ENGAGED = 'not_engaged',
   UNKNOWN = 'unknown',
 }
+
+export enum CampType {
+  SSC = 'ssc',
+  DSC = 'dsc'
+}
+
+export enum Cohort {
+  ONE = 'one',
+  TWO = 'two',
+  WEEKEND = 'weekend'
+}
+
