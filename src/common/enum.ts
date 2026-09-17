@@ -10,3 +10,7 @@ export enum Program {
     OUTREACH = 'outreach'
 }
 
+export enum CampType {
+    SSC = 'ssc',
+    DSC = 'dsc'
+}

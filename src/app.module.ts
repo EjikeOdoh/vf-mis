@@ -8,6 +8,11 @@ import { StudentsModule } from './students/students.module';
 import { AscgProfileModule } from './ascg-profile/ascg-profile.module';
 import { CbcProfileModule } from './cbc-profile/cbc-profile.module';
 import { ProgramsModule } from './programs/programs.module';
+import { AscgParticipationModule } from './ascg-participation/ascg-participation.module';
+import { CbcParticipationModule } from './cbc-participation/cbc-participation.module';
+import { ScParticipationModule } from './sc-participation/sc-participation.module';
+import { TracksModule } from './tracks/tracks.module';
+import { ProgramParticipationModule } from './program-participation/program-participation.module';
 
 @Module({
   imports: [
@@ -28,7 +33,12 @@ import { ProgramsModule } from './programs/programs.module';
     StudentsModule,
     AscgProfileModule,
     CbcProfileModule,
-    ProgramsModule
+    ProgramsModule,
+    AscgParticipationModule,
+    CbcParticipationModule,
+    ScParticipationModule,
+    TracksModule,
+    ProgramParticipationModule
   ],
   controllers: [AppController],
   providers: [AppService],
