@@ -2,9 +2,9 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('tracks')
 export class Track {
-    @PrimaryGeneratedColumn()
-    id!: string;
+    @PrimaryGeneratedColumn('identity')
+    id!: number;
 
-    @Column()
+    @Column({ type: 'varchar', unique: true })
     track!: string;
 }

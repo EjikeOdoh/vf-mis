@@ -11,8 +11,8 @@ import { ProgramsModule } from './programs/programs.module';
 import { AscgParticipationModule } from './ascg-participation/ascg-participation.module';
 import { CbcParticipationModule } from './cbc-participation/cbc-participation.module';
 import { ScParticipationModule } from './sc-participation/sc-participation.module';
-import { TracksModule } from './tracks/tracks.module';
 import { ProgramParticipationModule } from './program-participation/program-participation.module';
+import { TracksModule } from './tracks/tracks.module';
 
 @Module({
   imports: [
@@ -37,8 +37,8 @@ import { ProgramParticipationModule } from './program-participation/program-part
     AscgParticipationModule,
     CbcParticipationModule,
     ScParticipationModule,
-    TracksModule,
-    ProgramParticipationModule
+    ProgramParticipationModule,
+    TracksModule
   ],
   controllers: [AppController],
   providers: [AppService],

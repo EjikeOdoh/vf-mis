@@ -18,19 +18,19 @@ export class TracksService {
   }
 
   async findAll() {
-    return await this.trackRepository.findAndCount();
+    return await this.trackRepository.find();
   }
 
-  async findOne(id: string) {
-    return await this.trackRepository.findOneOrFail({ where: { id } });
+  async findOne(id: number) {
+    return await this.trackRepository.findOneByOrFail({ id });
   }
 
-  async update(id: string, updateTrackDto: UpdateTrackDto) {
+  async update(id: number, updateTrackDto: UpdateTrackDto) {
     await this.trackRepository.update(id, updateTrackDto);
     return await this.findOne(id);
   }
 
-  async remove(id: string) {
+  async remove(id: number) {
     await this.trackRepository.delete(id);
     return { success: true };
   }

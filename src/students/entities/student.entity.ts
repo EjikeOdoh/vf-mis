@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { AscgParticipation } from "src/ascg-participation/entities/ascg-participation.entity";
+import { AscgProfile } from "src/ascg-profile/entities/ascg-profile.entity";
+import { CbcParticipation } from "src/cbc-participation/entities/cbc-participation.entity";
+import { CbcProfile } from "src/cbc-profile/entities/cbc-profile.entity";
+import { ProgramParticipation } from "src/program-participation/entities/program-participation.entity";
+import { ScParticipation } from "src/sc-participation/entities/sc-participation.entity";
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('students')
 export class Student {
@@ -25,4 +31,23 @@ export class Student {
 
     @Column({ type: 'int', nullable: false })
     yearJoined!: number;
+
+    @OneToOne(() => AscgProfile, (profile) => profile.student)
+    ascgProfile?: AscgProfile;
+
+    @OneToOne(() => CbcProfile, (profile) => profile.student)
+    cbcProfile?: CbcProfile;
+
+    @OneToMany(() => AscgParticipation, (participation) => participation.student)
+    ascgParticipation?: AscgParticipation[]
+
+    @OneToMany(() => CbcParticipation, (participation) => participation.student)
+    cbcParticipation?: CbcParticipation[]
+
+    @OneToMany(() => ScParticipation, (participation) => participation.student)
+    scParticipation?: ScParticipation[]
+
+    @OneToMany(() => ProgramParticipation, (participation) => participation.student)
+    programParticipation?: ProgramParticipation[]
+
 }
