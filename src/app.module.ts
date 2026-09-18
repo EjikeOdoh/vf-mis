@@ -13,6 +13,8 @@ import { CbcParticipationModule } from './cbc-participation/cbc-participation.mo
 import { ScParticipationModule } from './sc-participation/sc-participation.module';
 import { ProgramParticipationModule } from './program-participation/program-participation.module';
 import { TracksModule } from './tracks/tracks.module';
+import { AuthModule } from './auth/auth.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { TracksModule } from './tracks/tracks.module';
         synchronize: true,
       }),
     }),
+    EventEmitterModule.forRoot(),
+    AuthModule,
     SchoolsModule,
     StudentsModule,
     AscgProfileModule,
@@ -38,7 +42,8 @@ import { TracksModule } from './tracks/tracks.module';
     CbcParticipationModule,
     ScParticipationModule,
     ProgramParticipationModule,
-    TracksModule
+    TracksModule,
+
   ],
   controllers: [AppController],
   providers: [AppService],
