@@ -8,12 +8,20 @@ import {
 
 import { Response } from 'express';
 import { QueryFailedError, EntityNotFoundError } from 'typeorm';
+import { } from '@nestjs/config'
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+
+    if (exception instanceof TypeError) {
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: exception.message,
+      });
+    }
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();

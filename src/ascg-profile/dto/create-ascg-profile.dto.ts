@@ -56,7 +56,7 @@ export class CreateAscgProfileDto {
 
     @IsOptional()
     @IsString()
-    posistionInFamily?: string;
+    positionInFamily?: string;
 
     @IsOptional()
     @IsString()
