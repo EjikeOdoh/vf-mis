@@ -1,4 +1,4 @@
-import { IsDate, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsDate, IsDateString, IsNumber, IsOptional, IsString } from "class-validator";
 import { ProperNoun } from "src/common/decorators/proper.decorator";
 
 export class CreateStudentDto {
@@ -10,7 +10,7 @@ export class CreateStudentDto {
     @ProperNoun()
     lastName!: string;
 
-    @IsDate()
+    @IsDateString()
     dateOfBirth!: Date;
 
     @IsOptional()
