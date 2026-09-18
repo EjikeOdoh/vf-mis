@@ -9,9 +9,9 @@ export class School {
     @Column({ type: 'varchar', nullable: false, unique: true })
     school!: string;
 
-    @Column({ type: 'enum', enum: Category })
+    @Column({ type: 'simple-enum', enum: Category })
     category!: string;
 
-    @Column({ type: 'enum', enum: Program, default: Program.ASCG })
+    @Column({ type: 'simple-enum', enum: Program, default: Program.ASCG })
     program!: Program;
 }

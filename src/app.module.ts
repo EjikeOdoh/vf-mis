@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SchoolsModule } from './schools/schools.module';
 import { StudentsModule } from './students/students.module';
@@ -22,9 +22,9 @@ import { TracksModule } from './tracks/tracks.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.getOrThrow<string>('CONNECTION_STRING'),
+      useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
+        type: 'better-sqlite3',
+        database: configService.getOrThrow<string>('SQLITE_DB'),
         autoLoadEntities: true,
         synchronize: true,
       }),

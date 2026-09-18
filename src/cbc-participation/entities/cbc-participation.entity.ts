@@ -14,7 +14,7 @@ export class CbcParticipation {
     @JoinColumn({ name: 'student_id' })
     student!: Student;
 
-    @Column({ type: 'enum', enum: Cohort, nullable: false })
+    @Column({ type: 'simple-enum', enum: Cohort, nullable: false })
     cohort!: Cohort;
 
     @Column('varchar')

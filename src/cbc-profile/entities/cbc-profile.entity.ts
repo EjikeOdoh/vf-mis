@@ -10,10 +10,10 @@ export class CbcProfile {
     @Column({ type: 'varchar', nullable: true })
     school?: string;
 
-    @Column({ type: 'enum', enum: PriorTechEducation, nullable: true, default: PriorTechEducation.NONE })
+    @Column({ type: 'simple-enum', enum: PriorTechEducation, nullable: true, default: PriorTechEducation.NONE })
     priorTechEducation?: PriorTechEducation;
 
-    @Column({ type: 'enum', enum: PriorTechExperience, nullable: true, default: PriorTechExperience.NONE })
+    @Column({ type: 'simple-enum', enum: PriorTechExperience, nullable: true, default: PriorTechExperience.NONE })
     priorTechExperience?: PriorTechEducation;
 
     @Column({ type: 'varchar', nullable: false })
@@ -22,10 +22,10 @@ export class CbcProfile {
     @Column({ type: 'boolean', nullable: true, default: true })
     completedProgram?: boolean;
 
-    @Column({ type: 'enum', enum: CbcOutcome, nullable: true })
+    @Column({ type: 'simple-enum', enum: CbcOutcome, nullable: true })
     outcomeAt6Months?: CbcOutcome;
 
-    @Column({ type: 'enum', enum: CbcOutcome, nullable: true })
+    @Column({ type: 'simple-enum', enum: CbcOutcome, nullable: true })
     outcomeAt12Months?: CbcOutcome;
 
     @Column({ type: 'varchar', nullable: true })
@@ -37,7 +37,7 @@ export class CbcProfile {
     @Column({ type: 'varchar', nullable: true })
     industry?: string;
 
-    @Column({ type: 'enum', enum: TechEngagement, nullable: true, default: TechEngagement.UNKNOWN })
+    @Column({ type: 'simple-enum', enum: TechEngagement, nullable: true, default: TechEngagement.UNKNOWN })
     techEngagementLevel?: TechEngagement;
 
     @OneToOne(() => Student, (student) => student.cbcProfile, { nullable: false, onDelete: 'CASCADE' })
