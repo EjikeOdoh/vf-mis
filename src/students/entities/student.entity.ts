@@ -4,9 +4,10 @@ import { CbcParticipation } from "src/cbc-participation/entities/cbc-participati
 import { CbcProfile } from "src/cbc-profile/entities/cbc-profile.entity";
 import { ProgramParticipation } from "src/program-participation/entities/program-participation.entity";
 import { ScParticipation } from "src/sc-participation/entities/sc-participation.entity";
-import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('students')
+@Unique(['combo'])
 export class Student {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
@@ -22,6 +23,9 @@ export class Student {
 
     @Column({ type: 'varchar', nullable: true })
     phone?: string;
+
+    @Column({ type: 'date', nullable: false })
+    dateOfBirth!: Date;
 
     @Column({ type: 'varchar', nullable: true })
     address?: string;
@@ -49,5 +53,18 @@ export class Student {
 
     @OneToMany(() => ProgramParticipation, (participation) => participation.student)
     programParticipation?: ProgramParticipation[]
+
+    @Column()
+    combo!: string;
+
+    //Automatically compute combo before save/update
+    @BeforeInsert()
+    @BeforeUpdate()
+    setCombo() {
+        if (this.firstName && this.lastName) {
+            const [a, b] = [this.firstName.trim().toLowerCase(), this.lastName.trim().toLowerCase()].sort();
+            this.combo = `${a}-${b}-${this.dateOfBirth}`;
+        }
+    }
 
 }

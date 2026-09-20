@@ -77,4 +77,8 @@ export class CreateAscgProfileDto {
     @IsOptional()
     @IsString()
     careerChoice2?: string;
+
+    @IsOptional()
+    @IsNumber()
+    year?:number;
 }

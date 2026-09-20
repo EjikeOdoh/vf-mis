@@ -1,7 +1,19 @@
-import { IsDate, IsDateString, IsNumber, IsOptional, IsString } from "class-validator";
+import { IntersectionType } from "@nestjs/mapped-types";
+import { IsDateString, IsNumber, IsOptional, IsString } from "class-validator";
+import { CreateAscgParticipationDto } from "src/ascg-participation/dto/create-ascg-participation.dto";
+import { CreateAscgProfileDto } from "src/ascg-profile/dto/create-ascg-profile.dto";
+import { CreateCbcParticipationDto } from "src/cbc-participation/dto/create-cbc-participation.dto";
+import { CreateCbcProfileDto } from "src/cbc-profile/dto/create-cbc-profile.dto";
 import { ProperNoun } from "src/common/decorators/proper.decorator";
+import { CreateScParticipationDto } from "src/sc-participation/dto/create-sc-participation.dto";
 
-export class CreateStudentDto {
+export class CreateStudentDto extends IntersectionType(
+    CreateAscgProfileDto,
+    CreateCbcProfileDto,
+    CreateAscgParticipationDto,
+    CreateScParticipationDto,
+    CreateCbcParticipationDto
+) {
     @IsString()
     @ProperNoun()
     firstName!: string;
@@ -11,7 +23,7 @@ export class CreateStudentDto {
     lastName!: string;
 
     @IsDateString()
-    dateOfBirth!: Date;
+    dateOfBirth!: string;
 
     @IsOptional()
     @IsString()
@@ -31,4 +43,12 @@ export class CreateStudentDto {
     @IsNumber()
     yearJoined!: number;
 
+    @IsOptional()
+    @IsString()
+    programId?: string;
+
+    //For cbc data
+    @IsOptional()
+    @IsString()
+    trackId?: string;
 }

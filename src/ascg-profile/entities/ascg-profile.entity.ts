@@ -1,7 +1,8 @@
 import { Student } from "src/students/entities/student.entity";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('ascg_profile')
+@Unique(['studentId', 'schoolId'])
 export class AscgProfile {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
@@ -61,6 +62,6 @@ export class AscgProfile {
     careerChoice2?: string;
 
     @OneToOne(() => Student, (student) => student.ascgProfile, { nullable: false, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'student_id' })
+    @JoinColumn({ name: 'studentId' })
     student!: Student;
 }

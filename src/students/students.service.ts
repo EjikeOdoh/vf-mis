@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Student } from './entities/student.entity';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { StudentEvents } from './events/student.events';
+import { extractAscgProfile, extractCbcProfile, extractScParticipation } from './student.utils';
 
 @Injectable()
 export class StudentsService {
@@ -13,26 +14,68 @@ export class StudentsService {
   constructor(
     @InjectRepository(Student) private readonly studentRepository: Repository<Student>,
     private readonly eventEmitter: EventEmitter2
-  ) {}
+  ) { }
 
-  create(createStudentDto: CreateStudentDto) {
-    this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, createStudentDto)
-    return 'This action adds a new student';
+  async create(createStudentDto: CreateStudentDto) {
+
+    const { programId } = createStudentDto;
+
+    try {
+
+      const student = this.studentRepository.create(createStudentDto);
+      const newStudent = await this.studentRepository.save(student);
+
+      this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, {...createStudentDto, studentId: newStudent.id});
+
+      if (programId && (programId === 'ascg' || programId === 'outreach' )) {
+        const dto = extractAscgProfile(createStudentDto);
+        this.eventEmitter.emit(StudentEvents.ASCG_STUDENT_CREATED, { ...dto, studentId: newStudent.id, programId });
+
+      }
+
+      if (programId && programId === 'cbc') {
+        const dto = extractCbcProfile(createStudentDto);
+        this.eventEmitter.emit(StudentEvents.CBC_STUDENT_CREATED, { ...dto, studentId: newStudent.id, programId });
+      }
+
+      if (programId && programId === 'sc') {
+        const dto = extractScParticipation(createStudentDto);
+        this.eventEmitter.emit(StudentEvents.SC_STUDENT_CREATED, { ...dto, programId, studentId: newStudent.id});
+      }
+
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error as any).driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' &&
+        (error as any).driverError?.message?.includes('UNIQUE constraint failed')
+      ) {
+        throw new ConflictException('Student already exists');
+      }
+
+      throw error;
+    }
   }
 
-  findAll() {
-    return `This action returns all students`;
+  async findAll() {
+    return await this.studentRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} student`;
+  async findOne(id: string) {
+    return await this.studentRepository.findOneByOrFail({ id });
   }
 
-  update(id: number, updateStudentDto: UpdateStudentDto) {
-    return `This action updates a #${id} student`;
+  async update(id: string, updateStudentDto: UpdateStudentDto) {
+    await this.studentRepository.update(id, updateStudentDto);
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} student`;
+  async remove(id: string) {
+    await this.studentRepository.delete(id);
+    return { success: true };
+  }
+
+  async deleteAll() {
+    await this.studentRepository.deleteAll()
+    return { success: true };
   }
 }

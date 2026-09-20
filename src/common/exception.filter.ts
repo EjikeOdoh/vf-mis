@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { Response } from 'express';
-import { QueryFailedError, EntityNotFoundError } from 'typeorm';
+import { QueryFailedError } from 'typeorm';
 import { } from '@nestjs/config'
 
 @Catch()
@@ -60,6 +60,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
         case '23502':
           return response.status(HttpStatus.BAD_REQUEST).json({
             statusCode: HttpStatus.BAD_REQUEST,
+            message: driverError.detail,
+          });
+
+        case 'SQLITE_CONSTRAINT_UNIQUE':
+          return response.status(HttpStatus.CONFLICT).json({
+            statusCode: HttpStatus.CONFLICT,
             message: driverError.detail,
           });
 
