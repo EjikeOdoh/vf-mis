@@ -13,10 +13,11 @@ export class AscgProfileListener {
         @InjectRepository(AscgProfile) private readonly ascgProfileRepository: Repository<AscgProfile>
     ) { }
 
-    @OnEvent(StudentEvents.ASCG_STUDENT_CREATED)
+    @OnEvent(StudentEvents.STUDENT_CREATED)
     async createProfile(event: AscgStudentCreatedEvent) {
-        Logger.log(event);
-        const profile = this.ascgProfileRepository.create(event);
-        return await this.ascgProfileRepository.save(profile);
+        if (event.programId !== "cbc") {
+            const profile = this.ascgProfileRepository.create(event);
+            return await this.ascgProfileRepository.save(profile);
+        }
     }
 }

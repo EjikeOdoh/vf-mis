@@ -6,7 +6,7 @@ import { Student } from './entities/student.entity';
 import { QueryFailedError, Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { StudentEvents } from './events/student.events';
-import { extractAscgProfile, extractCbcProfile, extractScParticipation } from './student.utils';
+import { extractAscgParticipation, extractAscgProfile, extractCbcParticipation, extractCbcProfile, extractScParticipation } from './student.utils';
 
 @Injectable()
 export class StudentsService {
@@ -28,13 +28,13 @@ export class StudentsService {
       this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, {...createStudentDto, studentId: newStudent.id});
 
       if (programId && (programId === 'ascg' || programId === 'outreach' )) {
-        const dto = extractAscgProfile(createStudentDto);
+        const dto = extractAscgParticipation(createStudentDto);
         this.eventEmitter.emit(StudentEvents.ASCG_STUDENT_CREATED, { ...dto, studentId: newStudent.id, programId });
 
       }
 
       if (programId && programId === 'cbc') {
-        const dto = extractCbcProfile(createStudentDto);
+        const dto = extractCbcParticipation(createStudentDto);
         this.eventEmitter.emit(StudentEvents.CBC_STUDENT_CREATED, { ...dto, studentId: newStudent.id, programId });
       }
 
