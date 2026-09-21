@@ -19,16 +19,16 @@ export class CbcProfileController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.cbcProfileService.findOne(+id);
+    return this.cbcProfileService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCbcProfileDto: UpdateCbcProfileDto) {
-    return this.cbcProfileService.update(+id, updateCbcProfileDto);
+    return this.cbcProfileService.update(id, updateCbcProfileDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.cbcProfileService.remove(+id);
+    return this.cbcProfileService.remove(id);
   }
 }

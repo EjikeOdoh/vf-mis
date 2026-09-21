@@ -1,26 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { CreateScParticipationDto } from './dto/create-sc-participation.dto';
 import { UpdateScParticipationDto } from './dto/update-sc-participation.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ScParticipation } from './entities/sc-participation.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ScParticipationService {
-  create(createScParticipationDto: CreateScParticipationDto) {
-    return 'This action adds a new scParticipation';
+  constructor(
+    @InjectRepository(ScParticipation) private readonly scParticipationRepository: Repository<ScParticipation>  
+  ) { }
+
+  async create(createScParticipationDto: CreateScParticipationDto) {
+    const participation = this.scParticipationRepository.create(createScParticipationDto);
+    return await this.scParticipationRepository.save(participation);
   }
 
-  findAll() {
-    return `This action returns all scParticipation`;
+  async findAll() {
+    return await this.scParticipationRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} scParticipation`;
+  async findOne(id: number) {
+    return await this.scParticipationRepository.findOneByOrFail({ id });
   }
 
-  update(id: number, updateScParticipationDto: UpdateScParticipationDto) {
-    return `This action updates a #${id} scParticipation`;
+  async update(id: number, updateScParticipationDto: UpdateScParticipationDto) {
+    await this.scParticipationRepository.update(id, updateScParticipationDto as any);
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} scParticipation`;
+  async remove(id: number) {
+    await this.scParticipationRepository.delete(id);
+    return { success: true };
   }
 }

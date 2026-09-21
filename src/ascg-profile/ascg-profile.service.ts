@@ -10,25 +10,29 @@ export class AscgProfileService {
 
   constructor(
     @InjectRepository(AscgProfile) private readonly ascgProfileRepository: Repository<AscgProfile>
-  ) {}
-
-  create(createAscgProfileDto: CreateAscgProfileDto) {
-    return 'This action adds a new ascgProfile';
+  ) { }
+  async create(createAscgProfileDto: CreateAscgProfileDto) {
+    const profile = this.ascgProfileRepository.create(createAscgProfileDto);
+    return await this.ascgProfileRepository.save(profile);
   }
 
   async findAll() {
     return await this.ascgProfileRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} ascgProfile`;
+  async findOne(id: string | number) {
+    const idStr = String(id);
+    return await this.ascgProfileRepository.findOneByOrFail({ id: idStr });
   }
 
-  update(id: number, updateAscgProfileDto: UpdateAscgProfileDto) {
-    return `This action updates a #${id} ascgProfile`;
+  async update(id: string | number, updateAscgProfileDto: UpdateAscgProfileDto) {
+    const idStr = String(id);
+    await this.ascgProfileRepository.update(idStr, updateAscgProfileDto as any);
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} ascgProfile`;
+  async remove(id: string | number) {
+    const idStr = String(id);
+    return await this.ascgProfileRepository.delete(idStr);
   }
 }

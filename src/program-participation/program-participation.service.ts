@@ -12,23 +12,26 @@ export class ProgramParticipationService {
     @InjectRepository(ProgramParticipation) private readonly participationRepository: Repository<ProgramParticipation>
   ) { }
 
-  create(createProgramParticipationDto: CreateProgramParticipationDto) {
-    return 'This action adds a new programParticipation';
+  async create(createProgramParticipationDto: CreateProgramParticipationDto) {
+    const participation = this.participationRepository.create(createProgramParticipationDto);
+    return await this.participationRepository.save(participation);
   }
 
   async findAll() {
     return await this.participationRepository.find()
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} programParticipation`;
+  async findOne(id: number) {
+    return await this.participationRepository.findOneByOrFail({ id });
   }
 
-  update(id: number, updateProgramParticipationDto: UpdateProgramParticipationDto) {
-    return `This action updates a #${id} programParticipation`;
+  async update(id: number, updateProgramParticipationDto: UpdateProgramParticipationDto) {
+    await this.participationRepository.update(id, updateProgramParticipationDto as any);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} programParticipation`;
+  async remove(id: number) {
+    await this.participationRepository.delete(id);
+    return { success: true };
   }
 }

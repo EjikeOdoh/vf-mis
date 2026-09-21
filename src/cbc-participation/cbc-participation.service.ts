@@ -10,25 +10,28 @@ export class CbcParticipationService {
 
   constructor(
     @InjectRepository(CbcParticipation) private readonly participation: Repository<CbcParticipation>
-  ){}
+  ) { }
 
-  create(createCbcParticipationDto: CreateCbcParticipationDto) {
-    return 'This action adds a new cbcParticipation';
+  async create(createCbcParticipationDto: CreateCbcParticipationDto) {
+    const part = this.participation.create(createCbcParticipationDto);
+    return await this.participation.save(part);
   }
 
   async findAll() {
     return await this.participation.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} cbcParticipation`;
+  async findOne(id: number) {
+    return `await this.participation.findOneByOrFail({ id })`;
   }
 
-  update(id: number, updateCbcParticipationDto: UpdateCbcParticipationDto) {
-    return `This action updates a #${id} cbcParticipation`;
+  async update(id: number, updateCbcParticipationDto: UpdateCbcParticipationDto) {
+    await this.participation.update(id, updateCbcParticipationDto as any);
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} cbcParticipation`;
+  async remove(id: number) {
+    await this.participation.delete(id);
+    return { success: true };
   }
 }

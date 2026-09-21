@@ -10,27 +10,28 @@ export class AscgParticipationService {
 
   constructor(
     @InjectRepository(AscgParticipation) private readonly ascgParticipationRepository: Repository<AscgParticipation>
-  ) {
+  ) { }
 
-  }
-
-  create(createAscgParticipationDto: CreateAscgParticipationDto) {
-    return 'This action adds a new ascgParticipation';
+  async create(createAscgParticipationDto: CreateAscgParticipationDto) {
+    const participation = this.ascgParticipationRepository.create(createAscgParticipationDto);
+    return await this.ascgParticipationRepository.save(participation);
   }
 
   async findAll() {
     return await this.ascgParticipationRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} ascgParticipation`;
+  async findOne(id: number) {
+    return await this.ascgParticipationRepository.findOneByOrFail({ id });
   }
 
-  update(id: number, updateAscgParticipationDto: UpdateAscgParticipationDto) {
-    return `This action updates a #${id} ascgParticipation`;
+  async update(id: number, updateAscgParticipationDto: UpdateAscgParticipationDto) {
+    await this.ascgParticipationRepository.update(id, updateAscgParticipationDto as any);
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} ascgParticipation`;
+  async remove(id: number) {
+    await this.ascgParticipationRepository.delete(id);
+    return { success: true };
   }
 }

@@ -19,16 +19,16 @@ export class AscgProfileController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ascgProfileService.findOne(+id);
+    return this.ascgProfileService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAscgProfileDto: UpdateAscgProfileDto) {
-    return this.ascgProfileService.update(+id, updateAscgProfileDto);
+    return this.ascgProfileService.update(id, updateAscgProfileDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.ascgProfileService.remove(+id);
+    return this.ascgProfileService.remove(id);
   }
 }
