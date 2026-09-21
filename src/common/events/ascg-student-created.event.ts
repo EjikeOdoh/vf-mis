@@ -2,6 +2,7 @@ export class AscgStudentCreatedEvent {
     constructor(
         public readonly studentId: string,
         public readonly schoolId: string,
+        public readonly programId: string,
         public readonly fatherLastName?: string,
         public readonly fatherFirstName?: string,
         public readonly fatherPhone?: string,

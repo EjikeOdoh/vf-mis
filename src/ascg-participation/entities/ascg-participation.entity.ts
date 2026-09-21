@@ -1,20 +1,24 @@
 import { School } from "src/schools/entities/school.entity";
 import { Student } from "src/students/entities/student.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('ascg_participations')
+@Unique(['studentId', 'year'])
 export class AscgParticipation {
     @PrimaryGeneratedColumn('identity')
     id!: number;
 
-    @Column({ name: 'student_id', type: 'uuid', nullable: false })
+    @Column({ type: 'uuid', nullable: false })
     studentId!: string;
 
-    @Column({ name: 'school_id', type: 'uuid', nullable: false })
+    @Column({ type: 'uuid', nullable: false })
     schoolId!: string;
 
+    @Column({nullable: true})
+    programId?: string;
+
     @ManyToOne(() => Student, (student) => student.ascgParticipation, { nullable: false, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'student_id' })
+    @JoinColumn({ name: 'studentId' })
     student!: Student;
 
     @Column({ type: 'integer' })

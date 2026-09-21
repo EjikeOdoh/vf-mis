@@ -1,15 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAscgProfileDto } from './dto/create-ascg-profile.dto';
 import { UpdateAscgProfileDto } from './dto/update-ascg-profile.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AscgProfile } from './entities/ascg-profile.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AscgProfileService {
+
+  constructor(
+    @InjectRepository(AscgProfile) private readonly ascgProfileRepository: Repository<AscgProfile>
+  ) {}
+
   create(createAscgProfileDto: CreateAscgProfileDto) {
     return 'This action adds a new ascgProfile';
   }
 
-  findAll() {
-    return `This action returns all ascgProfile`;
+  async findAll() {
+    return await this.ascgProfileRepository.find();
   }
 
   findOne(id: number) {

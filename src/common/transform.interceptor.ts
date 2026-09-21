@@ -14,10 +14,8 @@ export interface Response<T> {
 export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> {
     intercept(context: ExecutionContext, next: CallHandler): Observable<Response<T>> {
 
-        const ctx: HttpArgumentsHost = context.switchToHttp()
-
-        const statusCode = ctx.getResponse<ExpressResponse>().statusCode
-
+        const ctx: HttpArgumentsHost = context.switchToHttp();
+        const statusCode = ctx.getResponse<ExpressResponse>().statusCode;
 
         return next.handle().pipe(map(data => ({
             statusCode,

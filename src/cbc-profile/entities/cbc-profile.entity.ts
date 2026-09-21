@@ -7,6 +7,9 @@ export class CbcProfile {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
+    @Column()
+    studentId!: string;
+
     @Column({ type: 'varchar', nullable: true })
     school?: string;
 
@@ -41,6 +44,6 @@ export class CbcProfile {
     techEngagementLevel?: TechEngagement;
 
     @OneToOne(() => Student, (student) => student.cbcProfile, { nullable: false, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'student_id' })
+    @JoinColumn({ name: 'studentId' })
     student!: Student;
 }

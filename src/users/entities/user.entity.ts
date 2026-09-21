@@ -26,12 +26,12 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: true })
   passwordResetTokenHash?: string | null;
 
-  @Column({ type: 'timestamptz', nullable: true })
+  @Column({ type: 'date', nullable: true })
   passwordResetTokenExpiresAt?: Date | null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: 'date' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ type: 'date' })
   updatedAt!: Date;
 }

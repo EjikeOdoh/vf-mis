@@ -1,4 +1,5 @@
-import { IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsEnum } from 'class-validator';
+import { Cohort } from 'src/common/enum';
 
 export class CreateCbcProfileDto {
     @IsOptional()
@@ -44,4 +45,8 @@ export class CreateCbcProfileDto {
     @IsOptional()
     @IsString()
     techEngagementLevel?: string;
+
+    @IsOptional()
+    @IsEnum(Cohort)
+    cohort?: Cohort
 }
