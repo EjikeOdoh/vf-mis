@@ -14,7 +14,7 @@ export class ScParticipation {
     @JoinColumn({ name: 'student_id' })
     student!: Student;
 
-    @Column({ type: 'enum', enum: CampType, nullable: false })
+    @Column({ type: 'simple-enum', enum: CampType, nullable: false })
     type!: CampType;
 
     @Column({ type: 'integer', nullable: false })
