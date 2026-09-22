@@ -25,9 +25,9 @@ export class StudentsService {
       const student = this.studentRepository.create(createStudentDto);
       const newStudent = await this.studentRepository.save(student);
 
-      this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, {...createStudentDto, studentId: newStudent.id});
+      this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, { ...createStudentDto, studentId: newStudent.id });
 
-      if (programId && (programId === 'ascg' || programId === 'outreach' )) {
+      if (programId && (programId === 'ascg' || programId === 'outreach')) {
         const dto = extractAscgParticipation(createStudentDto);
         this.eventEmitter.emit(StudentEvents.ASCG_STUDENT_CREATED, { ...dto, studentId: newStudent.id, programId });
 
@@ -40,7 +40,7 @@ export class StudentsService {
 
       if (programId && programId === 'sc') {
         const dto = extractScParticipation(createStudentDto);
-        this.eventEmitter.emit(StudentEvents.SC_STUDENT_CREATED, { ...dto, programId, studentId: newStudent.id});
+        this.eventEmitter.emit(StudentEvents.SC_STUDENT_CREATED, { ...dto, programId, studentId: newStudent.id });
       }
 
     } catch (error) {
@@ -49,9 +49,36 @@ export class StudentsService {
         (error as any).driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' &&
         (error as any).driverError?.message?.includes('UNIQUE constraint failed')
       ) {
-        throw new ConflictException('Student already exists');
-      }
+        const student = await this.studentRepository.findOne({
+          where: {
+            firstName: createStudentDto.firstName,
+            lastName: createStudentDto.lastName,
+            // dateOfBirth: createStudentDto.dateOfBirth,
+          }
+        })
+        console.log(student);
 
+        if (student) {
+
+          this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, { ...createStudentDto, studentId: student.id });
+
+          if (programId && (programId === 'ascg' || programId === 'outreach')) {
+            const dto = extractAscgParticipation(createStudentDto);
+            this.eventEmitter.emit(StudentEvents.ASCG_STUDENT_CREATED, { ...dto, studentId: student.id, programId });
+          }
+
+          if (programId && programId === 'cbc') {
+            const dto = extractCbcParticipation(createStudentDto);
+            this.eventEmitter.emit(StudentEvents.CBC_STUDENT_CREATED, { ...dto, studentId: student.id, programId });
+          }
+
+          if (programId && programId === 'sc') {
+            const dto = extractScParticipation(createStudentDto);
+            this.eventEmitter.emit(StudentEvents.SC_STUDENT_CREATED, { ...dto, programId, studentId: student.id });
+          }
+        }
+      }
+      console.log(error);
       throw error;
     }
   }
