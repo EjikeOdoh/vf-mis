@@ -49,13 +49,18 @@ export class StudentsService {
         (error as any).driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' &&
         (error as any).driverError?.message?.includes('UNIQUE constraint failed')
       ) {
-        const student = await this.studentRepository.findOne({
-          where: {
+        const student = await this.studentRepository
+          .createQueryBuilder('student')
+          .where('student.first_name = :firstName', {
             firstName: createStudentDto.firstName,
+          })
+          .andWhere('student.last_name = :lastName', {
             lastName: createStudentDto.lastName,
-            // dateOfBirth: createStudentDto.dateOfBirth,
-          }
-        })
+          })
+          .andWhere('student.date_of_birth = :dateOfBirth', {
+            dateOfBirth: createStudentDto.dateOfBirth,
+          })
+          .getOne();
         console.log(student);
 
         if (student) {
