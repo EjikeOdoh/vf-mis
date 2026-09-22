@@ -13,7 +13,7 @@ export class CbcParticipationService {
   ) { }
 
   async create(createCbcParticipationDto: CreateCbcParticipationDto) {
-    const part = this.participation.create(createCbcParticipationDto);
+    const part = this.participation.create(createCbcParticipationDto as any);
     return await this.participation.save(part);
   }
 

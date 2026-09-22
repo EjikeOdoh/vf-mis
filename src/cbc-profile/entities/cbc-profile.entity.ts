@@ -7,7 +7,7 @@ export class CbcProfile {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-    @Column()
+    @Column({ unique: true })
     studentId!: string;
 
     @Column({ type: 'varchar', nullable: true })
@@ -18,9 +18,6 @@ export class CbcProfile {
 
     @Column({ type: 'simple-enum', enum: PriorTechExperience, nullable: true, default: PriorTechExperience.NONE })
     priorTechExperience?: PriorTechEducation;
-
-    @Column({ type: 'varchar', nullable: false })
-    trackId?: string;
 
     @Column({ type: 'boolean', nullable: true, default: true })
     completedProgram?: boolean;

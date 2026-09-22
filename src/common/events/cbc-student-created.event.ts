@@ -5,6 +5,7 @@ export class CbcStudentCreatedEvent {
         public readonly priorTechEducation?: string,
         public readonly priorTechExperience?: string,
         public readonly track?: string,
+        public readonly trackId?: string,
         public readonly completedProgram?: boolean,
         public readonly outcomeAt6Months?: string,
         public readonly outcomeAt12Months?: string,

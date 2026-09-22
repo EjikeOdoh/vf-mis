@@ -22,26 +22,26 @@ export class ProgramParticipationListener {
 
     @OnEvent(StudentEvents.STUDENT_CREATED)
     async createParticipation(event) {
-        const programParticipation = this.participationRepository.create(event);
+        const programParticipation = this.participationRepository.create(event as any);
         await this.participationRepository.save(programParticipation);
     }
 
     @OnEvent(StudentEvents.ASCG_STUDENT_CREATED)
     async createAscgParticipation(event: AscgStudentCreatedEvent) {
-        const ascgParticipation = this.ascgRepository.create(event);
+        const ascgParticipation = this.ascgRepository.create(event as any);
         await this.ascgRepository.save(ascgParticipation);
 
     }
 
     @OnEvent(StudentEvents.CBC_STUDENT_CREATED)
     async createCbcParticipation(event: CbcStudentCreatedEvent) {
-        const cbcParticipation = this.cbcRepository.create(event);
+        const cbcParticipation = this.cbcRepository.create(event as any);
         await this.cbcRepository.save(cbcParticipation);
     }
 
     @OnEvent(StudentEvents.SC_STUDENT_CREATED)
     async createScParticipation(event) {
-        const scParticipation = this.scRepository.create(event);
+        const scParticipation = this.scRepository.create(event as any);
         await this.scRepository.save(scParticipation);
     }
 

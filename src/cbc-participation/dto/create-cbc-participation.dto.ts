@@ -11,6 +11,10 @@ export class CreateCbcParticipationDto {
     track?: string;
 
     @IsOptional()
+    @IsString()
+    trackId?: string;
+
+    @IsOptional()
     @IsEnum(Cohort)
     cohort?: Cohort;
 

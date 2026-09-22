@@ -46,9 +46,4 @@ export class CreateStudentDto extends IntersectionType(
     @IsOptional()
     @IsString()
     programId?: string;
-
-    //For cbc data
-    @IsOptional()
-    @IsString()
-    trackId?: string;
 }
