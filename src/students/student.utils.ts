@@ -52,7 +52,9 @@ const ASCG_PARTICIPATION_KEYS = [
 const CBC_PARTICIPATION_KEYS = [
     'cohort',
     'track',
-    'year'
+    'trackId',
+    'year',
+
 ] satisfies readonly (keyof CreateCbcParticipationDto)[]
 
 const SC_PARTICIPATION_KEYS = [
