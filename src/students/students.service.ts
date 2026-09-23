@@ -51,13 +51,13 @@ export class StudentsService {
       ) {
         const student = await this.studentRepository
           .createQueryBuilder('student')
-          .where('student.first_name = :firstName', {
+          .where('student.firstName = :firstName', {
             firstName: createStudentDto.firstName,
           })
-          .andWhere('student.last_name = :lastName', {
+          .andWhere('student.lastName = :lastName', {
             lastName: createStudentDto.lastName,
           })
-          .andWhere('student.date_of_birth = :dateOfBirth', {
+          .andWhere('student.dateOfBirth = :dateOfBirth', {
             dateOfBirth: createStudentDto.dateOfBirth,
           })
           .getOne();

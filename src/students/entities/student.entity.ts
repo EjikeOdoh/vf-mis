@@ -18,7 +18,7 @@ export class Student {
     @Column({ type: 'varchar', nullable: false })
     lastName!: string;
 
-    @Column({ type: 'varchar', nullable: true, unique: true })
+    @Column({ type: 'varchar', nullable: true })
     email?: string;
 
     @Column({ type: 'varchar', nullable: true })
@@ -53,6 +53,9 @@ export class Student {
 
     @OneToMany(() => ProgramParticipation, (participation) => participation.student)
     programParticipation?: ProgramParticipation[]
+
+    @Column({type: 'boolean', default: false})
+    consent!: boolean;
 
     @Column()
     combo!: string;
