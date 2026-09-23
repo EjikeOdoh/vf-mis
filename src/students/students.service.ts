@@ -81,6 +81,8 @@ export class StudentsService {
             const dto = extractScParticipation(createStudentDto);
             this.eventEmitter.emit(StudentEvents.SC_STUDENT_CREATED, { ...dto, programId, studentId: student.id });
           }
+
+          return { msg: "Participations Added" };
         }
       }
       console.log(error);
