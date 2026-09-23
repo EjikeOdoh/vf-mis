@@ -61,10 +61,8 @@ export class StudentsService {
             dateOfBirth: createStudentDto.dateOfBirth,
           })
           .getOne();
-        console.log(student);
 
         if (student) {
-
           this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, { ...createStudentDto, studentId: student.id });
 
           if (programId && (programId === 'ascg' || programId === 'outreach')) {
