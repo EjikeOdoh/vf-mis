@@ -4,8 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CbcStudentCreatedEvent } from "src/common/events/cbc-student-created.event";
 import { StudentEvents } from "src/students/events/student.events";
 import { CbcProfile } from "./entities/cbc-profile.entity";
-import { Repository } from "typeorm";
-import { extractAscgProfile } from "src/students/student.utils";
+import { QueryFailedError, Repository } from "typeorm";
 
 @Injectable()
 export class CbcProfileListener {
@@ -15,10 +14,23 @@ export class CbcProfileListener {
     ) { }
 
     @OnEvent(StudentEvents.STUDENT_CREATED)
-    async createCbcProfile(event) {
+    async createCbcProfile(event: CbcStudentCreatedEvent) {
         if (event.programId === "cbc") {
-            const profile = this.cbcProfileRepository.create(event);
-            await this.cbcProfileRepository.save(profile);
+            try {
+                const profile = this.cbcProfileRepository.create(event as Partial<CbcProfile>);
+                await this.cbcProfileRepository.save(profile);
+            } catch (error) {
+                if (
+                    error instanceof QueryFailedError &&
+                    ((error as any).driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+                        (error as any).driverError?.code === '23505' ||
+                        (error as any).driverError?.message?.includes('UNIQUE constraint failed'))
+                ) {
+                    return;
+                }
+
+                throw error;
+            }
         }
     }
 }

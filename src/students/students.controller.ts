@@ -12,6 +12,11 @@ export class StudentsController {
     return this.studentsService.create(createStudentDto);
   }
 
+  @Post('batch')
+  createMany(@Body() createStudentDtos: CreateStudentDto[]) {
+    return this.studentsService.createMany(createStudentDtos);
+  }
+
   @Get()
   findAll() {
     return this.studentsService.findAll();

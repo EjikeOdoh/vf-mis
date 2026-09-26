@@ -17,6 +17,11 @@ export class SchoolsController {
     return this.schoolsService.create(createSchoolDto);
   }
 
+  @Post('batch')
+  createMany(@Body() createSchoolDtos: CreateSchoolDto[]) {
+    return this.schoolsService.createMany(createSchoolDtos);
+  }
+
   @Get()
   findAll(
     @Query('category') category: string

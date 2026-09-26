@@ -18,7 +18,7 @@ export class Student {
     @Column({ type: 'varchar', nullable: false })
     lastName!: string;
 
-    @Column({ type: 'varchar', nullable: true })
+    @Column({ type: 'varchar', nullable: true, unique: false })
     email?: string;
 
     @Column({ type: 'varchar', nullable: true })
