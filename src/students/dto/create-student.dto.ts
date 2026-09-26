@@ -38,6 +38,7 @@ export class CreateStudentDto extends IntersectionType(
     address?: string;
 
     @IsString()
+    @ProperNoun()
     country!: string;
 
     @IsNumber()

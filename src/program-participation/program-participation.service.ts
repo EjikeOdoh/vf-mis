@@ -18,7 +18,7 @@ export class ProgramParticipationService {
   }
 
   async findAll() {
-    return await this.participationRepository.find()
+    return await this.participationRepository.findAndCount()
   }
 
   async findOne(id: number) {

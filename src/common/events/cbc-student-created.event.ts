@@ -1,5 +1,6 @@
 export class CbcStudentCreatedEvent {
     constructor(
+        public readonly programId: string,
         public readonly studentId: string,
         public readonly school?: string,
         public readonly priorTechEducation?: string,

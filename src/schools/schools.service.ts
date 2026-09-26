@@ -18,6 +18,15 @@ export class SchoolsService {
     return await this.schoolRepo.save(newSchool);
   }
 
+  async createMany(createSchoolDtos: CreateSchoolDto[]) {
+    if (!createSchoolDtos || createSchoolDtos.length === 0) {
+      throw new BadRequestException('At least one school is required to create.');
+    }
+
+    const schools = this.schoolRepo.create(createSchoolDtos);
+    return await this.schoolRepo.save(schools);
+  }
+
   async findAll(category: string) {
     if (category) {
       return await this.schoolRepo.findAndCount({ where: { category } })
@@ -25,7 +34,6 @@ export class SchoolsService {
 
     return await this.schoolRepo.findAndCount();
   }
-
 
   async findOne(id: string) {
     const school = await this.schoolRepo.findOneBy({ id });
@@ -36,7 +44,6 @@ export class SchoolsService {
 
     return school;
   }
-
 
   update(id: number, updateSchoolDto: UpdateSchoolDto) {
     return `This action updates a #${id} school`;
