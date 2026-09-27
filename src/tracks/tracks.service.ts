@@ -17,6 +17,11 @@ export class TracksService {
     return await this.trackRepository.save(track);
   }
 
+  async createMany(createTrackDtos: CreateTrackDto[]) {
+    const tracks = createTrackDtos.map(dto => this.trackRepository.create(dto));
+    return await this.trackRepository.save(tracks);
+  }
+
   async findAll() {
     return await this.trackRepository.find();
   }

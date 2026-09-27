@@ -12,6 +12,11 @@ export class TracksController {
     return this.tracksService.create(createTrackDto);
   }
 
+  @Post('batch')
+  createBatch(@Body() createTrackDtos: CreateTrackDto[]) {
+    return this.tracksService.createMany(createTrackDtos);
+  }
+
   @Get()
   findAll() {
     return this.tracksService.findAll();

@@ -7,15 +7,12 @@ import { QueryFailedError, Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { StudentEvents } from './events/student.events';
 import { extractAscgParticipation, extractCbcParticipation, extractScParticipation } from './student.utils';
-import pLimit from 'p-limit';
 import { AscgParticipation } from 'src/ascg-participation/entities/ascg-participation.entity';
 import { CbcParticipation } from 'src/cbc-participation/entities/cbc-participation.entity';
 import { ProgramParticipation } from 'src/program-participation/entities/program-participation.entity';
 import { ScParticipation } from 'src/sc-participation/entities/sc-participation.entity';
 import { AscgProfile } from 'src/ascg-profile/entities/ascg-profile.entity';
 import { CbcProfile } from 'src/cbc-profile/entities/cbc-profile.entity';
-
-const limit = pLimit(5); // Limit concurrency to 5
 
 @Injectable()
 export class StudentsService {
@@ -31,6 +28,16 @@ export class StudentsService {
     @InjectRepository(CbcProfile) private readonly cbcProfileRepo: Repository<CbcProfile>,
   ) { }
 
+  private toValidYear(value: unknown, fieldName: string): number {
+    const parsed = Number(value);
+
+    if (!Number.isFinite(parsed)) {
+      throw new BadRequestException(`${fieldName} must be a valid year`);
+    }
+
+    return parsed;
+  }
+
   async create(createStudentDto: CreateStudentDto) {
 
     const { programId } = createStudentDto;
@@ -39,11 +46,12 @@ export class StudentsService {
 
       // Run parent + child saves in a single transaction to avoid FK race conditions
       const newStudent = await this.studentRepository.manager.transaction(async (manager) => {
+        const yearJoined = this.toValidYear((createStudentDto as any).yearJoined ?? createStudentDto.yearJoined, 'yearJoined');
+
         const studentEntity = manager.create(Student, {
           ...createStudentDto,
           email: (createStudentDto.email || '').trim() || undefined,
-          dateOfBirth: new Date(createStudentDto.dateOfBirth),
-          yearJoined: Number((createStudentDto as any).yearJoined ?? createStudentDto.yearJoined),
+          yearJoined,
         } as any);
 
         const savedStudent = await manager.save(studentEntity);
@@ -59,7 +67,7 @@ export class StudentsService {
             const prog = manager.create(ProgramParticipation, {
               studentId: savedStudent.id,
               programId: String(programIdVal),
-              year: Number((createStudentDto as any).year || (createStudentDto as any).yearJoined || createStudentDto.yearJoined),
+              year: this.toValidYear((createStudentDto as any).year ?? (createStudentDto as any).yearJoined ?? createStudentDto.yearJoined, 'year'),
             } as any);
             console.debug('[StudentsService.create:tx] creating ProgramParticipation with studentId=%s prog=%o', savedStudent.id, prog);
             await manager.save(prog);
@@ -75,7 +83,7 @@ export class StudentsService {
           if (programId && (programId === 'ascg' || programId === 'outreach')) {
             const dto = extractAscgParticipation(createStudentDto) as any;
             dto.studentId = savedStudent.id;
-            dto.year = Number(dto.year || (createStudentDto as any).yearJoined);
+            dto.year = this.toValidYear(dto.year ?? (createStudentDto as any).yearJoined, 'year');
             const ascg = manager.create(AscgParticipation, dto);
             await manager.save(ascg);
 
@@ -91,7 +99,7 @@ export class StudentsService {
           if (programId && programId === 'cbc') {
             const dto = extractCbcParticipation(createStudentDto) as any;
             dto.studentId = savedStudent.id;
-            dto.year = Number(dto.year || (createStudentDto as any).yearJoined);
+            dto.year = this.toValidYear(dto.year ?? (createStudentDto as any).yearJoined, 'year');
             const cbc = manager.create(CbcParticipation, dto);
             await manager.save(cbc);
 
@@ -107,7 +115,7 @@ export class StudentsService {
           if (programId && programId === 'sc') {
             const dto = extractScParticipation(createStudentDto) as any;
             dto.studentId = savedStudent.id;
-            dto.year = Number(dto.year || (createStudentDto as any).yearJoined);
+            dto.year = this.toValidYear(dto.year ?? (createStudentDto as any).yearJoined, 'year');
             const sc = manager.create(ScParticipation, dto);
             await manager.save(sc);
           }
@@ -160,11 +168,7 @@ export class StudentsService {
             this.eventEmitter.emit(StudentEvents.SC_STUDENT_CREATED, { ...dto, programId, studentId: student.id });
           }
 
-<<<<<<< HEAD
           return { msg: "Participations Added" };
-=======
-          return student;
->>>>>>> 9d135005b35169537393dc1b956f5519769f5087
         }
       };
       console.log(error);
@@ -173,11 +177,32 @@ export class StudentsService {
   }
 
   async createMany(createStudentDtos: CreateStudentDto[]) {
-    const tasks = createStudentDtos.map(dto => limit(async () => {
-      dto.email = (dto.email || '').trim() || undefined;
-      return this.create(dto);
-    }));
-    return Promise.all(tasks);
+    const results: any[] = [];
+    const skipped: any[] = [];
+
+    for (const dto of createStudentDtos) {
+      try {
+        dto.email = (dto.email || '').trim() || undefined;
+        results.push(await this.create(dto));
+      } catch (error) {
+        const isConflict =
+          error instanceof QueryFailedError && (
+            (error as any).driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+            (error as any).driverError?.code === '23505' ||
+            (error as any).driverError?.message?.includes('UNIQUE constraint failed') ||
+            (error as any).driverError?.message?.includes('duplicate key')
+          );
+
+        if (isConflict) {
+          skipped.push(dto);
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    return { results, skipped };
   }
 
   async findAll() {

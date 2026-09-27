@@ -1,5 +1,6 @@
+import { Transform } from "class-transformer";
 import { IsEnum, IsString } from "class-validator";
-import { Category } from "src/common/enum";
+import { Category, Program } from "src/common/enum";
 
 export class CreateSchoolDto {
 
@@ -11,4 +12,5 @@ export class CreateSchoolDto {
 
     @IsEnum(Category)
     category!: Category
+
 }

@@ -4,10 +4,10 @@ export enum Category {
 }
 
 export enum Program {
-  ASCG = 'ascg',
-  CBC = 'cbc',
-  SC = 'sc',
-  OUTREACH = 'outreach'
+  ASCG = 'ASCG',
+  CBC = 'CBC',
+  SC = 'SC',
+  OUTREACH = 'OUTREACH'
 }
 
 export enum PriorTechEducation {
