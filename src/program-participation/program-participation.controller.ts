@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ProgramParticipationService } from './program-participation.service';
 import { CreateProgramParticipationDto } from './dto/create-program-participation.dto';
 import { UpdateProgramParticipationDto } from './dto/update-program-participation.dto';
@@ -13,8 +13,11 @@ export class ProgramParticipationController {
   }
 
   @Get()
-  findAll() {
-    return this.programParticipationService.findAll();
+  findAll(
+    @Query('year') year?: string,
+    @Query('programId') programId?: string,
+  ) {
+    return this.programParticipationService.findAll(year, programId);
   }
 
   @Get(':id')

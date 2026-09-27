@@ -205,12 +205,92 @@ export class StudentsService {
     return { results, skipped };
   }
 
-  async findAll() {
-    return await this.studentRepository.findAndCount();
+  private toSearchResult(student: Student) {
+    const dob = student.dateOfBirth ? new Date(student.dateOfBirth) : null;
+    const age = dob && !Number.isNaN(dob.getTime())
+      ? new Date().getFullYear() - dob.getFullYear() - (
+          new Date(new Date().getFullYear(), dob.getMonth(), dob.getDate()) > new Date() ? 1 : 0
+        )
+      : null;
+
+    const school = student.cbcProfile?.school || student.ascgProfile?.school?.school || null;
+
+    return {
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      dateOfBirth: student.dateOfBirth,
+      age,
+      email: student.email,
+      phone: student.phone,
+      school,
+    };
+  }
+
+  async findAll(name?: string, firstName?: string, lastName?: string) {
+    const qb = this.studentRepository.createQueryBuilder('student')
+      .leftJoinAndSelect('student.ascgProfile', 'ascgProfile')
+      .leftJoinAndSelect('ascgProfile.school', 'school')
+      .leftJoinAndSelect('student.cbcProfile', 'cbcProfile')
+      .leftJoinAndSelect('student.ascgParticipation', 'ascgParticipation')
+      .leftJoinAndSelect('student.cbcParticipation', 'cbcParticipation')
+      .leftJoinAndSelect('student.scParticipation', 'scParticipation')
+      .leftJoinAndSelect('student.programParticipation', 'programParticipation');
+
+    const trimmedName = name?.trim();
+    const trimmedFirstName = firstName?.trim();
+    const trimmedLastName = lastName?.trim();
+
+    if (trimmedName) {
+      const nameParts = trimmedName.split(/\s+/).filter(Boolean);
+
+      if (nameParts.length > 1) {
+        const firstToken = nameParts[0].toLowerCase();
+        const lastToken = nameParts[nameParts.length - 1].toLowerCase();
+
+        qb.andWhere(
+          '((LOWER(student.firstName) LIKE :firstToken AND LOWER(student.lastName) LIKE :lastToken) OR (LOWER(student.firstName) LIKE :lastToken AND LOWER(student.lastName) LIKE :firstToken))',
+          {
+            firstToken: `%${firstToken}%`,
+            lastToken: `%${lastToken}%`,
+          },
+        );
+      } else {
+        const nameTerm = `%${trimmedName.toLowerCase()}%`;
+        qb.andWhere('(LOWER(student.firstName) LIKE :nameTerm OR LOWER(student.lastName) LIKE :nameTerm)', {
+          nameTerm,
+        });
+      }
+    }
+
+    if (trimmedFirstName) {
+      qb.andWhere('LOWER(student.firstName) LIKE :firstName', {
+        firstName: `%${trimmedFirstName.toLowerCase()}%`,
+      });
+    }
+
+    if (trimmedLastName) {
+      qb.andWhere('LOWER(student.lastName) LIKE :lastName', {
+        lastName: `%${trimmedLastName.toLowerCase()}%`,
+      });
+    }
+
+    const [students, total] = await qb.getManyAndCount();
+    return [students.map((student) => this.toSearchResult(student)), total];
   }
 
   async findOne(id: string) {
-    return await this.studentRepository.findOneByOrFail({ id });
+    return await this.studentRepository.findOneOrFail({
+      where: { id },
+      relations: {
+        ascgProfile: true,
+        cbcProfile: true,
+        ascgParticipation: true,
+        cbcParticipation: true,
+        scParticipation: true,
+        programParticipation: true,
+      },
+    });
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto) {

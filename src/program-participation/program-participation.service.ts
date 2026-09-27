@@ -17,8 +17,20 @@ export class ProgramParticipationService {
     return await this.participationRepository.save(participation);
   }
 
-  async findAll() {
-    return await this.participationRepository.findAndCount()
+  async findAll(year?: string | number, programId?: string) {
+    const filters: Record<string, string | number> = {};
+
+    if (year !== undefined && year !== null && year !== '') {
+      filters.year = Number(year);
+    }
+
+    if (programId !== undefined && programId !== null && programId !== '') {
+      filters.programId = programId;
+    }
+
+    return await this.participationRepository.findAndCount({
+      where: Object.keys(filters).length > 0 ? filters : undefined,
+    });
   }
 
   async findOne(id: number) {

@@ -1,7 +1,8 @@
 import { Student } from "src/students/entities/student.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('ascg_participations')
+@Unique(['studentId', 'schoolId', 'year'])
 export class AscgParticipation {
     @PrimaryGeneratedColumn('identity')
     id!: number;

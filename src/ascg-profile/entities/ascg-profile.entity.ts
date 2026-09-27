@@ -1,5 +1,6 @@
+import { School } from "src/schools/entities/school.entity";
 import { Student } from "src/students/entities/student.entity";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('ascg_profile')
 @Unique(['studentId', 'schoolId'])
@@ -12,6 +13,10 @@ export class AscgProfile {
 
     @Column({ type: 'varchar', nullable: true })
     schoolId?: string;
+
+    @ManyToOne(() => School, { nullable: true })
+    @JoinColumn({ name: 'schoolId' })
+    school?: School;
 
     @Column({ type: 'varchar', nullable: true })
     fatherLastName?: string;
