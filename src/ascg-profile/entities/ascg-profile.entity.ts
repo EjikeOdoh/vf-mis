@@ -42,11 +42,11 @@ export class AscgProfile {
     @Column({ type: 'varchar', nullable: true })
     motherEducation?: string;
 
-    @Column({ type: 'int', nullable: true })
-    numberOfBrothers?: number;
+    @Column({ type: 'varchar', nullable: true })
+    numberOfBrothers?: string;
 
-    @Column({ type: 'int', nullable: true })
-    numberOfSisters?: number;
+    @Column({ type: 'varchar', nullable: true })
+    numberOfSisters?: string;
 
     @Column({ type: 'varchar', nullable: true })
     posistionInFamily?: string;

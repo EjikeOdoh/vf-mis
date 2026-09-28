@@ -1,3 +1,4 @@
+import { Transform } from "class-transformer";
 import { IsNumber, IsOptional, IsString } from "class-validator";
 import { ProperNoun } from "src/common/decorators/proper.decorator";
 
@@ -47,12 +48,12 @@ export class CreateAscgProfileDto {
     motherEducation?: string;
 
     @IsOptional()
-    @IsNumber()
-    numberOfBrothers?: number;
+    @IsString()
+    numberOfBrothers?: string;
 
     @IsOptional()
-    @IsNumber()
-    numberOfSisters?: number;
+    @IsString()
+    numberOfSisters?: string;
 
     @IsOptional()
     @IsString()
@@ -80,5 +81,5 @@ export class CreateAscgProfileDto {
 
     @IsOptional()
     @IsNumber()
-    year?:number;
+    year?: number;
 }

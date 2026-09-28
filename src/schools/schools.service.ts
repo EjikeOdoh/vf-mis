@@ -52,4 +52,8 @@ export class SchoolsService {
   remove(id: number) {
     return `This action removes a #${id} school`;
   }
+
+  removeAll() {
+    return this.schoolRepo.clear();
+  }
 }

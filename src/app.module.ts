@@ -25,8 +25,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
-        type: 'better-sqlite3',
-        database: configService.getOrThrow<string>('SQLITE_DB'),
+        type: 'postgres',
+        url: configService.get<string>('CONNECTION_STRING'),
         autoLoadEntities: true,
         synchronize: true,
       }),

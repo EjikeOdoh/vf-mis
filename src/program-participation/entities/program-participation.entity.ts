@@ -1,4 +1,3 @@
-import { Program } from "src/programs/entities/program.entity";
 import { Student } from "src/students/entities/student.entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 

@@ -17,6 +17,11 @@ export class SchoolsController {
     return this.schoolsService.create(createSchoolDto);
   }
 
+  @Delete()
+  deleteAll() {
+    return this.schoolsService.removeAll();
+  }
+
   @Post('batch')
   createMany(@Body() createSchoolDtos: CreateSchoolDto[]) {
     return this.schoolsService.createMany(createSchoolDtos);

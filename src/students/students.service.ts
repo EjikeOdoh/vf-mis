@@ -42,6 +42,8 @@ export class StudentsService {
 
     const { programId } = createStudentDto;
 
+    console.debug(typeof createStudentDto.numberOfBrothers, typeof createStudentDto.numberOfSisters);
+
     try {
 
       // Run parent + child saves in a single transaction to avoid FK race conditions
