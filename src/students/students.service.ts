@@ -1,12 +1,17 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EntityManager, EntityTarget, QueryFailedError, Repository } from 'typeorm';
+
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Student } from './entities/student.entity';
-import { QueryFailedError, Repository } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { StudentEvents } from './events/student.events';
-import { extractAscgParticipation, extractCbcParticipation, extractScParticipation } from './student.utils';
+import {
+  extractAscgParticipation,
+  extractCbcParticipation,
+  extractScParticipation,
+} from './student.utils';
 import { AscgParticipation } from 'src/ascg-participation/entities/ascg-participation.entity';
 import { CbcParticipation } from 'src/cbc-participation/entities/cbc-participation.entity';
 import { ProgramParticipation } from 'src/program-participation/entities/program-participation.entity';
@@ -14,19 +19,86 @@ import { ScParticipation } from 'src/sc-participation/entities/sc-participation.
 import { AscgProfile } from 'src/ascg-profile/entities/ascg-profile.entity';
 import { CbcProfile } from 'src/cbc-profile/entities/cbc-profile.entity';
 
+// ---------------------------------------------------------------------------
+// Helpers / config
+// ---------------------------------------------------------------------------
+
+/** DTO plus the optional legacy fields the old code read via `as any`. */
+type StudentInput = CreateStudentDto & {
+  program?: string;
+  year?: number | string;
+};
+
+interface ProgramConfig {
+  /** Pulls the program-specific fields out of the big DTO. */
+  extract: (dto: CreateStudentDto) => Record<string, any>;
+  participation: EntityTarget<any>;
+  profile?: EntityTarget<any>;
+  /** Event emitted when an EXISTING student is added to this program. */
+  event: string;
+}
+
+const ASCG_CONFIG: ProgramConfig = {
+  extract: extractAscgParticipation,
+  participation: AscgParticipation,
+  profile: AscgProfile,
+  event: StudentEvents.ASCG_STUDENT_CREATED,
+};
+
+/** Adding a new program = adding one entry here. */
+const PROGRAM_CONFIG: Record<string, ProgramConfig> = {
+  ascg: ASCG_CONFIG,
+  outreach: ASCG_CONFIG,
+  cbc: {
+    extract: extractCbcParticipation,
+    participation: CbcParticipation,
+    profile: CbcProfile,
+    event: StudentEvents.CBC_STUDENT_CREATED,
+  },
+  sc: {
+    extract: extractScParticipation,
+    participation: ScParticipation,
+    event: StudentEvents.SC_STUDENT_CREATED,
+  },
+};
+
+/** Works for SQLite and Postgres. */
+function isUniqueViolation(err: unknown): boolean {
+  if (!(err instanceof QueryFailedError)) return false;
+  const driverError = (err as any).driverError;
+  return (
+    driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+    driverError?.code === '23505' || // Postgres unique_violation
+    !!driverError?.message?.includes('UNIQUE constraint failed') ||
+    !!driverError?.message?.includes('duplicate key')
+  );
+}
+
+function calculateAge(dateOfBirth?: string | Date | null): number | null {
+  if (!dateOfBirth) return null;
+  const dob = new Date(dateOfBirth);
+  if (Number.isNaN(dob.getTime())) return null;
+
+  const today = new Date();
+  const hadBirthdayThisYear =
+    today.getMonth() > dob.getMonth() ||
+    (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+
+  return today.getFullYear() - dob.getFullYear() - (hadBirthdayThisYear ? 0 : 1);
+}
+
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
+
 @Injectable()
 export class StudentsService {
+  private readonly logger = new Logger(StudentsService.name);
 
   constructor(
     @InjectRepository(Student) private readonly studentRepository: Repository<Student>,
     private readonly eventEmitter: EventEmitter2,
-    @InjectRepository(AscgParticipation) private readonly ascgParticipationRepo: Repository<AscgParticipation>,
-    @InjectRepository(CbcParticipation) private readonly cbcParticipationRepo: Repository<CbcParticipation>,
-    @InjectRepository(ProgramParticipation) private readonly programParticipationRepo: Repository<ProgramParticipation>,
-    @InjectRepository(ScParticipation) private readonly scParticipationRepo: Repository<ScParticipation>,
-    @InjectRepository(AscgProfile) private readonly ascgProfileRepo: Repository<AscgProfile>,
-    @InjectRepository(CbcProfile) private readonly cbcProfileRepo: Repository<CbcProfile>,
-  ) { }
+  ) {}
 
   private toValidYear(value: unknown, fieldName: string): number {
     const parsed = Number(value);
@@ -38,199 +110,202 @@ export class StudentsService {
     return parsed;
   }
 
+  // -------------------------------------------------------------------------
+  // Create
+  // -------------------------------------------------------------------------
+
   async create(createStudentDto: CreateStudentDto) {
-
-    const { programId } = createStudentDto;
-
-    console.debug(typeof createStudentDto.numberOfBrothers, typeof createStudentDto.numberOfSisters);
+    // Normalise on a copy so the DB row AND the emitted events see the same data,
+    // without mutating the caller's object.
+    const input = {
+      ...createStudentDto,
+      email: createStudentDto.email?.trim() || undefined,
+    } as StudentInput;
+    // Single source of truth for the program (old code mixed programId / program).
+    const programId = input.programId ?? input.program;
 
     try {
+      const student = await this.studentRepository.manager.transaction((manager) =>
+        this.createStudentWithParticipations(manager, input, programId),
+      );
 
-      // Run parent + child saves in a single transaction to avoid FK race conditions
-      const newStudent = await this.studentRepository.manager.transaction(async (manager) => {
-        const yearJoined = this.toValidYear((createStudentDto as any).yearJoined ?? createStudentDto.yearJoined, 'yearJoined');
-
-        const studentEntity = manager.create(Student, {
-          ...createStudentDto,
-          email: (createStudentDto.email || '').trim() || undefined,
-          yearJoined,
-        } as any);
-
-        const savedStudent = await manager.save(studentEntity);
-
-        // helper to detect unique constraint errors
-        const isUnique = (err: unknown) =>
-          err instanceof QueryFailedError && ((err as any).driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' || (err as any).driverError?.message?.includes('UNIQUE constraint failed'));
-
-        // program participation (coerce year to number)
-        try {
-          const programIdVal = (createStudentDto as any).programId || (createStudentDto as any).program;
-          if (programIdVal) {
-            const prog = manager.create(ProgramParticipation, {
-              studentId: savedStudent.id,
-              programId: String(programIdVal),
-              year: this.toValidYear((createStudentDto as any).year ?? (createStudentDto as any).yearJoined ?? createStudentDto.yearJoined, 'year'),
-            } as any);
-            console.debug('[StudentsService.create:tx] creating ProgramParticipation with studentId=%s prog=%o', savedStudent.id, prog);
-            await manager.save(prog);
-            console.debug('[StudentsService.create:tx] saved ProgramParticipation for studentId=%s', savedStudent.id);
-          }
-        } catch (err) {
-          console.error('[StudentsService.create:tx] ProgramParticipation error for studentId=%s error=%o', savedStudent.id ?? err);
-          if (!isUnique(err)) throw err;
-        }
-
-        // ASCG specific
-        try {
-          if (programId && (programId === 'ascg' || programId === 'outreach')) {
-            const dto = extractAscgParticipation(createStudentDto) as any;
-            dto.studentId = savedStudent.id;
-            dto.year = this.toValidYear(dto.year ?? (createStudentDto as any).yearJoined, 'year');
-            const ascg = manager.create(AscgParticipation, dto);
-            await manager.save(ascg);
-
-            const ascgProfile = manager.create(AscgProfile, { ...createStudentDto, studentId: savedStudent.id } as any);
-            await manager.save(ascgProfile);
-          }
-        } catch (err) {
-          if (!isUnique(err)) throw err;
-        }
-
-        // CBC specific
-        try {
-          if (programId && programId === 'cbc') {
-            const dto = extractCbcParticipation(createStudentDto) as any;
-            dto.studentId = savedStudent.id;
-            dto.year = this.toValidYear(dto.year ?? (createStudentDto as any).yearJoined, 'year');
-            const cbc = manager.create(CbcParticipation, dto);
-            await manager.save(cbc);
-
-            const cbcProfile = manager.create(CbcProfile, { ...createStudentDto, studentId: savedStudent.id } as any);
-            await manager.save(cbcProfile);
-          }
-        } catch (err) {
-          if (!isUnique(err)) throw err;
-        }
-
-        // SC specific
-        try {
-          if (programId && programId === 'sc') {
-            const dto = extractScParticipation(createStudentDto) as any;
-            dto.studentId = savedStudent.id;
-            dto.year = this.toValidYear(dto.year ?? (createStudentDto as any).yearJoined, 'year');
-            const sc = manager.create(ScParticipation, dto);
-            await manager.save(sc);
-          }
-        } catch (err) {
-          if (!isUnique(err)) throw err;
-        }
-
-        return savedStudent;
+      // Emit only after the transaction has committed.
+      this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, {
+        ...input,
+        studentId: student.id,
       });
 
-      // Emit the general student created event after transaction commits
-      this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, { ...createStudentDto, studentId: newStudent.id });
-
-      return newStudent;
-
+      return student;
     } catch (error) {
-      if (
-        error instanceof QueryFailedError &&
-        (error as any).driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' &&
-        (error as any).driverError?.message?.includes('UNIQUE constraint failed')
-      ) {
-        const student = await this.studentRepository
-          .createQueryBuilder('student')
-          .where('student.firstName = :firstName', {
-            firstName: createStudentDto.firstName,
-          })
-          .andWhere('student.lastName = :lastName', {
-            lastName: createStudentDto.lastName,
-          })
-          .andWhere('student.dateOfBirth = :dateOfBirth', {
-            dateOfBirth: createStudentDto.dateOfBirth,
-          })
-          .getOne();
+      // Student already exists -> treat as "add existing student to a program".
+      if (isUniqueViolation(error)) {
+        const result = await this.addToExistingStudent(input, programId);
+        if (result) return result;
+      }
 
-        if (student) {
-          this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, { ...createStudentDto, studentId: student.id });
-
-          if (programId && (programId === 'ascg' || programId === 'outreach')) {
-            const dto = extractAscgParticipation(createStudentDto);
-            this.eventEmitter.emit(StudentEvents.ASCG_STUDENT_CREATED, { ...dto, studentId: student.id, programId });
-          }
-
-          if (programId && programId === 'cbc') {
-            const dto = extractCbcParticipation(createStudentDto);
-            this.eventEmitter.emit(StudentEvents.CBC_STUDENT_CREATED, { ...dto, studentId: student.id, programId });
-          }
-
-          if (programId && programId === 'sc') {
-            const dto = extractScParticipation(createStudentDto);
-            this.eventEmitter.emit(StudentEvents.SC_STUDENT_CREATED, { ...dto, programId, studentId: student.id });
-          }
-
-          return { msg: "Participations Added" };
-        }
-      };
-      console.log(error);
+      this.logger.error(
+        `Failed to create student ${input.firstName} ${input.lastName}`,
+        error instanceof Error ? error.stack : String(error),
+      );
       throw error;
     }
   }
 
+  /** Happy path: student + generic participation + program-specific rows, atomically. */
+  private async createStudentWithParticipations(
+    manager: EntityManager,
+    input: StudentInput,
+    programId?: string,
+  ) {
+    const yearJoined = this.toValidYear(input.yearJoined, 'yearJoined');
+
+    const student = await manager.save(
+      manager.create(Student, {
+        ...input,
+        email: input.email?.trim() || undefined, // '' -> undefined so it's stored as null
+        yearJoined,
+      } as any),
+    );
+
+    if (!programId) return student;
+
+    // Generic program participation.
+    const year = this.toValidYear(input.year ?? yearJoined, 'year');
+    await this.saveIgnoringDuplicate(manager, async (m) => {
+      await m.save(
+        m.create(ProgramParticipation, {
+          studentId: student.id,
+          programId: String(programId),
+          year,
+        } as any),
+      );
+    });
+
+    // Program-specific rows (ASCG / CBC / SC), driven by config.
+    const config = PROGRAM_CONFIG[programId];
+    if (config) {
+      await this.saveIgnoringDuplicate(manager, async (m) => {
+        const extracted = config.extract(input);
+        await m.save(
+          m.create(config.participation, {
+            ...extracted,
+            studentId: student.id,
+            year: this.toValidYear(extracted.year ?? yearJoined, 'year'),
+          }),
+        );
+
+        if (config.profile) {
+          await m.save(
+            m.create(config.profile, { ...input, studentId: student.id } as any),
+          );
+        }
+      });
+    }
+
+    return student;
+  }
+
+  /**
+   * Runs `work` in a nested transaction (SAVEPOINT) and ignores unique-constraint
+   * errors, so a swallowed error can't poison the outer transaction (an issue on
+   * Postgres with plain try/catch).
+   */
+  private async saveIgnoringDuplicate(
+    manager: EntityManager,
+    work: (manager: EntityManager) => Promise<void>,
+  ) {
+    try {
+      await manager.transaction(work);
+    } catch (err) {
+      if (!isUniqueViolation(err)) throw err;
+    }
+  }
+
+  /** Duplicate-student path. Returns null if the existing student can't be found. */
+  private async addToExistingStudent(input: StudentInput, programId?: string) {
+    const student = await this.studentRepository.findOne({
+      where: {
+        firstName: input.firstName,
+        lastName: input.lastName,
+        dateOfBirth: new Date(input.dateOfBirth),
+      },
+    });
+
+    if (!student) return null;
+
+    this.eventEmitter.emit(StudentEvents.STUDENT_CREATED, {
+      ...input,
+      studentId: student.id,
+    });
+
+    const config = programId ? PROGRAM_CONFIG[programId] : undefined;
+    if (config) {
+      this.eventEmitter.emit(config.event, {
+        ...config.extract(input),
+        studentId: student.id,
+        programId,
+      });
+    }
+
+    return { msg: 'Participations Added' };
+  }
+
   async createMany(createStudentDtos: CreateStudentDto[]) {
     const results: any[] = [];
-    const skipped: any[] = [];
+    const skipped: CreateStudentDto[] = [];
+    const failed: { index: number; dto: CreateStudentDto; error: string }[] = [];
 
-    for (const dto of createStudentDtos) {
+    // Sequential on purpose: each student is its own transaction, and a bad row
+    // must not abort the rest of the batch.
+    for (const [index, dto] of createStudentDtos.entries()) {
       try {
-        dto.email = (dto.email || '').trim() || undefined;
         results.push(await this.create(dto));
       } catch (error) {
-        const isConflict =
-          error instanceof QueryFailedError && (
-            (error as any).driverError?.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
-            (error as any).driverError?.code === '23505' ||
-            (error as any).driverError?.message?.includes('UNIQUE constraint failed') ||
-            (error as any).driverError?.message?.includes('duplicate key')
-          );
-
-        if (isConflict) {
+        if (isUniqueViolation(error)) {
           skipped.push(dto);
-          continue;
+        } else {
+          const message = error instanceof Error ? error.message : String(error);
+          failed.push({ index, dto, error: message });
         }
-
-        throw error;
       }
     }
 
-    return { results, skipped };
+    // create() returns { msg } for students that already existed, a Student otherwise.
+    const existing = results.filter((r) => r && 'msg' in r).length;
+
+    const summary = {
+      total: createStudentDtos.length,
+      created: results.length - existing,
+      existing,
+      skipped: skipped.length,
+      failed: failed.length,
+    };
+
+    this.logger.log(`createMany finished: ${JSON.stringify(summary)}`);
+
+    return { summary, results, skipped, failed };
   }
 
+  // -------------------------------------------------------------------------
+  // Read
+  // -------------------------------------------------------------------------
+
   private toSearchResult(student: Student) {
-    const dob = student.dateOfBirth ? new Date(student.dateOfBirth) : null;
-    const age = dob && !Number.isNaN(dob.getTime())
-      ? new Date().getFullYear() - dob.getFullYear() - (
-          new Date(new Date().getFullYear(), dob.getMonth(), dob.getDate()) > new Date() ? 1 : 0
-        )
-      : null;
-
-    const school = student.cbcProfile?.school || student.ascgProfile?.school?.school || null;
-
     return {
       id: student.id,
       firstName: student.firstName,
       lastName: student.lastName,
       dateOfBirth: student.dateOfBirth,
-      age,
+      age: calculateAge(student.dateOfBirth),
       email: student.email,
       phone: student.phone,
-      school,
+      school: student.cbcProfile?.school || student.ascgProfile?.school?.school || null,
     };
   }
 
   async findAll(name?: string, firstName?: string, lastName?: string) {
-    const qb = this.studentRepository.createQueryBuilder('student')
+    const qb = this.studentRepository
+      .createQueryBuilder('student')
       .leftJoinAndSelect('student.ascgProfile', 'ascgProfile')
       .leftJoinAndSelect('ascgProfile.school', 'school')
       .leftJoinAndSelect('student.cbcProfile', 'cbcProfile')
@@ -244,24 +319,23 @@ export class StudentsService {
     const trimmedLastName = lastName?.trim();
 
     if (trimmedName) {
-      const nameParts = trimmedName.split(/\s+/).filter(Boolean);
+      const parts = trimmedName.toLowerCase().split(/\s+/).filter(Boolean);
 
-      if (nameParts.length > 1) {
-        const firstToken = nameParts[0].toLowerCase();
-        const lastToken = nameParts[nameParts.length - 1].toLowerCase();
-
+      if (parts.length > 1) {
+        // Match "first last" in either order.
         qb.andWhere(
-          '((LOWER(student.firstName) LIKE :firstToken AND LOWER(student.lastName) LIKE :lastToken) OR (LOWER(student.firstName) LIKE :lastToken AND LOWER(student.lastName) LIKE :firstToken))',
+          '((LOWER(student.firstName) LIKE :firstToken AND LOWER(student.lastName) LIKE :lastToken) OR ' +
+            '(LOWER(student.firstName) LIKE :lastToken AND LOWER(student.lastName) LIKE :firstToken))',
           {
-            firstToken: `%${firstToken}%`,
-            lastToken: `%${lastToken}%`,
+            firstToken: `%${parts[0]}%`,
+            lastToken: `%${parts[parts.length - 1]}%`,
           },
         );
       } else {
-        const nameTerm = `%${trimmedName.toLowerCase()}%`;
-        qb.andWhere('(LOWER(student.firstName) LIKE :nameTerm OR LOWER(student.lastName) LIKE :nameTerm)', {
-          nameTerm,
-        });
+        qb.andWhere(
+          '(LOWER(student.firstName) LIKE :nameTerm OR LOWER(student.lastName) LIKE :nameTerm)',
+          { nameTerm: `%${parts[0]}%` },
+        );
       }
     }
 
@@ -295,6 +369,10 @@ export class StudentsService {
     });
   }
 
+  // -------------------------------------------------------------------------
+  // Update / delete
+  // -------------------------------------------------------------------------
+
   async update(id: string, updateStudentDto: UpdateStudentDto) {
     await this.studentRepository.update(id, updateStudentDto);
     return await this.findOne(id);
@@ -306,7 +384,7 @@ export class StudentsService {
   }
 
   async deleteAll() {
-    await this.studentRepository.deleteAll()
+    await this.studentRepository.deleteAll();
     return { success: true };
   }
 }
