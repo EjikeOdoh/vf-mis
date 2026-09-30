@@ -1,4 +1,5 @@
 import { Controller, Body, HttpCode, HttpStatus, Post, UseGuards, Get, Res, Query, Req, HostParam } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthResult, AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -15,6 +16,8 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 
 const OAUTH_STATE_COOKIE = 'google_oauth_state';
 
+@ApiTags('Authentication')
+@ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -25,18 +28,27 @@ export class AuthController {
   ) { }
 
   @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({ status: 201, description: 'User registered successfully.' })
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: RegisterDto): Promise<AuthResult> {
     return this.authService.register(dto);
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Log in a user' })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({ status: 200, description: 'User logged in successfully.' })
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: LoginDto): Promise<AuthResult> {
     return this.authService.login(dto);
   }
 
   @Post('refresh')
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiBody({ type: RefreshTokenDto })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully.' })
   @HttpCode(HttpStatus.OK)
   async refresh(@Body() dto: RefreshTokenDto): Promise<AuthResult> {
     return this.authService.refresh(dto)
@@ -44,6 +56,8 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(AccessTokenGuard)
+  @ApiOperation({ summary: 'Log out the current user' })
+  @ApiResponse({ status: 200, description: 'User logged out successfully.' })
   @HttpCode(HttpStatus.OK)
   async logout(@CurrentUser() user: JwtPayload): Promise<{ success: true }> {
     return this.authService.logout(user.sub);
@@ -51,6 +65,8 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AccessTokenGuard)
+  @ApiOperation({ summary: 'Get current authenticated user profile' })
+  @ApiResponse({ status: 200, description: 'User profile returned successfully.' })
   @HttpCode(HttpStatus.OK)
   async getProfile(@CurrentUser() user: JwtPayload): Promise<SafeUser> {
     return this.authService.getProfile(user.sub);
@@ -58,6 +74,9 @@ export class AuthController {
 
 
   @Post('reset-password')
+  @ApiOperation({ summary: 'Reset a user password' })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiResponse({ status: 200, description: 'Password reset successful.' })
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto)

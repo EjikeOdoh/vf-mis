@@ -32,7 +32,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       }),
     }),
     EventEmitterModule.forRoot(),
-    AuthModule,
+    // AuthModule,
     SchoolsModule,
     StudentsModule,
     AscgProfileModule,
