@@ -8,13 +8,47 @@ import {
 
 import { Response } from 'express';
 import { QueryFailedError } from 'typeorm';
-import { } from '@nestjs/config'
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+
+    const isDbConnectionError = (err: unknown): boolean => {
+      if (!err || typeof err !== 'object') return false;
+
+      const anyErr = err as any;
+
+      const code = anyErr.code;
+      const msg = anyErr.message ?? '';
+
+      const dbCodes = [
+        'ETIMEDOUT',
+        'ECONNREFUSED',
+        'ENETUNREACH',
+        'EHOSTUNREACH',
+        'ENOTFOUND',
+      ];
+
+      if (dbCodes.includes(code)) return true;
+
+      if (Array.isArray(anyErr.errors)) {
+        return anyErr.errors.some((e: any) =>
+          dbCodes.includes(e?.code) ||
+          /ETIMEDOUT|ECONNREFUSED|ENETUNREACH|EHOSTUNREACH|ENOTFOUND/.test(e?.message ?? '')
+        );
+      }
+
+      return /ETIMEDOUT|ECONNREFUSED|ENETUNREACH|EHOSTUNREACH|ENOTFOUND/.test(msg);
+    };
+
+    if (exception instanceof AggregateError || isDbConnectionError(exception)) {
+      return response.status(HttpStatus.SERVICE_UNAVAILABLE).json({
+        statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+        message: 'Database connection failed. Check the database host, port, and CONNECTION_STRING.',
+      });
+    }
 
     if (exception instanceof TypeError) {
       return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -70,16 +104,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
           });
 
         default:
-          console.error('Unhandled database error:', exception);
-
           return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
             message: 'A database error occurred.',
           });
       }
     }
-
-    console.log(exception);
 
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

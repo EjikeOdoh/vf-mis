@@ -28,7 +28,7 @@ export class ProgramParticipationService {
       filters.programId = programId;
     }
 
-    return await this.participationRepository.findAndCount({
+    return await this.participationRepository.count({
       where: Object.keys(filters).length > 0 ? filters : undefined,
     });
   }

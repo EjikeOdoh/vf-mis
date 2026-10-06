@@ -15,6 +15,7 @@ import { ProgramParticipationModule } from './program-participation/program-part
 import { TracksModule } from './tracks/tracks.module';
 import { AuthModule } from './auth/auth.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -27,6 +28,9 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
         type: 'postgres',
         url: configService.get<string>('CONNECTION_STRING'),
+
+        // type: "better-sqlite3",
+        // database: configService.get<string>('SQLITE_DB'),
         autoLoadEntities: true,
         synchronize: true,
       }),
@@ -43,6 +47,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     ScParticipationModule,
     ProgramParticipationModule,
     TracksModule,
+    StatsModule,
 
   ],
   controllers: [AppController],
