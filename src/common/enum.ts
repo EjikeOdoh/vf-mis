@@ -58,3 +58,9 @@ export enum Cohort {
   WEEKEND = 'weekend'
 }
 
+export enum AcademicTerm {
+  TERM_1 = 'Term 1',
+  TERM_2 = 'Term 2',
+  TERM_3 = 'Term 3',
+}
+

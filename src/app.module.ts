@@ -16,6 +16,7 @@ import { TracksModule } from './tracks/tracks.module';
 import { AuthModule } from './auth/auth.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { StatsModule } from './stats/stats.module';
+import { AcademicsModule } from './academics/academics.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { StatsModule } from './stats/stats.module';
     ProgramParticipationModule,
     TracksModule,
     StatsModule,
+    AcademicsModule,
 
   ],
   controllers: [AppController],

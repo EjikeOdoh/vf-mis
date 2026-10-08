@@ -17,7 +17,7 @@ export class AscgProfileService {
   }
 
   async findAll() {
-    return await this.ascgProfileRepository.find();
+    return await this.ascgProfileRepository.count();
   }
 
   async findOne(id: string | number) {
