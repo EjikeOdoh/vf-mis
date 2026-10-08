@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { CbcParticipationService } from './cbc-participation.service';
 import { CreateCbcParticipationDto } from './dto/create-cbc-participation.dto';
 import { UpdateCbcParticipationDto } from './dto/update-cbc-participation.dto';
@@ -9,6 +10,7 @@ import { UpdateCbcParticipationDto } from './dto/update-cbc-participation.dto';
 export class CbcParticipationController {
   constructor(private readonly cbcParticipationService: CbcParticipationService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create CBC participation record' })
   @ApiBody({ type: CreateCbcParticipationDto })
@@ -32,6 +34,7 @@ export class CbcParticipationController {
     return this.cbcParticipationService.findOne(+id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update a CBC participation record' })
   @ApiParam({ name: 'id', type: Number, description: 'Participation record id' })
@@ -41,6 +44,7 @@ export class CbcParticipationController {
     return this.cbcParticipationService.update(+id, updateCbcParticipationDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a CBC participation record' })
   @ApiParam({ name: 'id', type: Number, description: 'Participation record id' })

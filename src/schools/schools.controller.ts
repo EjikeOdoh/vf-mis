@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { SchoolsService } from './schools.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
@@ -14,6 +15,7 @@ export type SchoolsFilter = {
 export class SchoolsController {
   constructor(private readonly schoolsService: SchoolsService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create a school' })
   @ApiBody({ type: CreateSchoolDto })
@@ -22,6 +24,7 @@ export class SchoolsController {
     return this.schoolsService.create(createSchoolDto);
   }
 
+  @WriteProtected()
   @Delete()
   @ApiOperation({ summary: 'Delete all schools' })
   @ApiResponse({ status: 200, description: 'All schools deleted.' })
@@ -29,6 +32,7 @@ export class SchoolsController {
     return this.schoolsService.removeAll();
   }
 
+  @WriteProtected()
   @Post('batch')
   @ApiOperation({ summary: 'Create multiple schools' })
   @ApiBody({ type: [CreateSchoolDto] })
@@ -55,6 +59,7 @@ export class SchoolsController {
     return this.schoolsService.findOne(id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update a school' })
   @ApiParam({ name: 'id', type: Number, description: 'School id' })
@@ -64,6 +69,7 @@ export class SchoolsController {
     return this.schoolsService.update(+id, updateSchoolDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a school' })
   @ApiParam({ name: 'id', type: Number, description: 'School id' })

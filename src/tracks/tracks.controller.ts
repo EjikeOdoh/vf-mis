@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
@@ -9,6 +10,7 @@ import { UpdateTrackDto } from './dto/update-track.dto';
 export class TracksController {
   constructor(private readonly tracksService: TracksService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create a track' })
   @ApiBody({ type: CreateTrackDto })
@@ -17,6 +19,7 @@ export class TracksController {
     return this.tracksService.create(createTrackDto);
   }
 
+  @WriteProtected()
   @Post('batch')
   @ApiOperation({ summary: 'Create multiple tracks' })
   @ApiBody({ type: [CreateTrackDto] })
@@ -40,6 +43,7 @@ export class TracksController {
     return this.tracksService.findOne(+id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update a track' })
   @ApiParam({ name: 'id', type: Number, description: 'Track id' })
@@ -49,6 +53,7 @@ export class TracksController {
     return this.tracksService.update(+id, updateTrackDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a track' })
   @ApiParam({ name: 'id', type: Number, description: 'Track id' })

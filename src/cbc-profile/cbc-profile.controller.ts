@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { CbcProfileService } from './cbc-profile.service';
 import { CreateCbcProfileDto } from './dto/create-cbc-profile.dto';
 import { UpdateCbcProfileDto } from './dto/update-cbc-profile.dto';
@@ -9,6 +10,7 @@ import { UpdateCbcProfileDto } from './dto/update-cbc-profile.dto';
 export class CbcProfileController {
   constructor(private readonly cbcProfileService: CbcProfileService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create a CBC profile' })
   @ApiBody({ type: CreateCbcProfileDto })
@@ -32,6 +34,7 @@ export class CbcProfileController {
     return this.cbcProfileService.findOne(id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update a CBC profile' })
   @ApiParam({ name: 'id', type: String, description: 'Profile id' })
@@ -41,6 +44,7 @@ export class CbcProfileController {
     return this.cbcProfileService.update(id, updateCbcProfileDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a CBC profile' })
   @ApiParam({ name: 'id', type: String, description: 'Profile id' })

@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { ProgramParticipationService } from './program-participation.service';
 import { CreateProgramParticipationDto } from './dto/create-program-participation.dto';
 import { UpdateProgramParticipationDto } from './dto/update-program-participation.dto';
@@ -9,6 +10,7 @@ import { UpdateProgramParticipationDto } from './dto/update-program-participatio
 export class ProgramParticipationController {
   constructor(private readonly programParticipationService: ProgramParticipationService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create a program participation record' })
   @ApiBody({ type: CreateProgramParticipationDto })
@@ -37,6 +39,7 @@ export class ProgramParticipationController {
     return this.programParticipationService.findOne(+id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update a program participation record' })
   @ApiParam({ name: 'id', type: Number, description: 'Participation record id' })
@@ -46,6 +49,7 @@ export class ProgramParticipationController {
     return this.programParticipationService.update(+id, updateProgramParticipationDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a program participation record' })
   @ApiParam({ name: 'id', type: Number, description: 'Participation record id' })

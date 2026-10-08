@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { ScParticipationService } from './sc-participation.service';
 import { CreateScParticipationDto } from './dto/create-sc-participation.dto';
 import { UpdateScParticipationDto } from './dto/update-sc-participation.dto';
@@ -9,6 +10,7 @@ import { UpdateScParticipationDto } from './dto/update-sc-participation.dto';
 export class ScParticipationController {
   constructor(private readonly scParticipationService: ScParticipationService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create SC participation record' })
   @ApiBody({ type: CreateScParticipationDto })
@@ -32,6 +34,7 @@ export class ScParticipationController {
     return this.scParticipationService.findOne(+id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update an SC participation record' })
   @ApiParam({ name: 'id', type: Number, description: 'Participation record id' })
@@ -41,6 +44,7 @@ export class ScParticipationController {
     return this.scParticipationService.update(+id, updateScParticipationDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an SC participation record' })
   @ApiParam({ name: 'id', type: Number, description: 'Participation record id' })

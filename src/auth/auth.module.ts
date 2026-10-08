@@ -11,9 +11,10 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     JwtModule.register({}),
-    UsersModule
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, AccessTokenGuard, GoogleAuthService],
+  exports: [AccessTokenGuard],
 })
-export class AuthModule { }
+export class AuthModule {}

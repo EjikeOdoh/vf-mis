@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -9,6 +10,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create a student record' })
   @ApiBody({ type: CreateStudentDto })
@@ -17,6 +19,7 @@ export class StudentsController {
     return this.studentsService.create(createStudentDto);
   }
 
+  @WriteProtected()
   @Post('batch')
   @ApiOperation({ summary: 'Create multiple student records' })
   @ApiBody({ type: [CreateStudentDto] })
@@ -39,6 +42,7 @@ export class StudentsController {
     return this.studentsService.findAll(name, firstName, lastName);
   }
 
+  @WriteProtected()
   @Delete()
   @ApiOperation({ summary: 'Delete all student records' })
   @ApiResponse({ status: 200, description: 'All student records deleted.' })
@@ -54,6 +58,7 @@ export class StudentsController {
     return this.studentsService.findOne(id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update a student record' })
   @ApiParam({ name: 'id', type: String, description: 'Student id' })
@@ -63,6 +68,7 @@ export class StudentsController {
     return this.studentsService.update(id, updateStudentDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a student record' })
   @ApiParam({ name: 'id', type: String, description: 'Student id' })

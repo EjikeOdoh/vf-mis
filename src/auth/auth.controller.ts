@@ -13,6 +13,7 @@ import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Public } from './decorators/public.decorator';
 
 const OAUTH_STATE_COOKIE = 'google_oauth_state';
 
@@ -27,6 +28,7 @@ export class AuthController {
 
   ) { }
 
+  @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: RegisterDto })
@@ -36,6 +38,7 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  @Public()
   @Post('login')
   @ApiOperation({ summary: 'Log in a user' })
   @ApiBody({ type: LoginDto })
@@ -45,6 +48,7 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+  @Public()
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiBody({ type: RefreshTokenDto })
@@ -73,6 +77,7 @@ export class AuthController {
   }
 
 
+  @Public()
   @Post('reset-password')
   @ApiOperation({ summary: 'Reset a user password' })
   @ApiBody({ type: ResetPasswordDto })

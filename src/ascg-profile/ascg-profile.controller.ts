@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { AscgProfileService } from './ascg-profile.service';
 import { CreateAscgProfileDto } from './dto/create-ascg-profile.dto';
 import { UpdateAscgProfileDto } from './dto/update-ascg-profile.dto';
@@ -9,6 +10,7 @@ import { UpdateAscgProfileDto } from './dto/update-ascg-profile.dto';
 export class AscgProfileController {
   constructor(private readonly ascgProfileService: AscgProfileService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create an ASCG profile' })
   @ApiBody({ type: CreateAscgProfileDto })
@@ -32,6 +34,7 @@ export class AscgProfileController {
     return this.ascgProfileService.findOne(id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update an ASCG profile' })
   @ApiParam({ name: 'id', type: String, description: 'Profile id' })
@@ -41,6 +44,7 @@ export class AscgProfileController {
     return this.ascgProfileService.update(id, updateAscgProfileDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an ASCG profile' })
   @ApiParam({ name: 'id', type: String, description: 'Profile id' })

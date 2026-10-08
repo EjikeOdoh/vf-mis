@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { WriteProtected } from 'src/auth/decorators/write-protected.decorator';
 import { ProgramsService } from './programs.service';
 import { CreateProgramDto } from './dto/create-program.dto';
 import { UpdateProgramDto } from './dto/update-program.dto';
@@ -9,6 +10,7 @@ import { UpdateProgramDto } from './dto/update-program.dto';
 export class ProgramsController {
   constructor(private readonly programsService: ProgramsService) {}
 
+  @WriteProtected()
   @Post()
   @ApiOperation({ summary: 'Create a program' })
   @ApiBody({ type: CreateProgramDto })
@@ -32,6 +34,7 @@ export class ProgramsController {
     return this.programsService.findOne(id);
   }
 
+  @WriteProtected()
   @Patch(':id')
   @ApiOperation({ summary: 'Update a program' })
   @ApiParam({ name: 'id', type: String, description: 'Program id' })
@@ -41,6 +44,7 @@ export class ProgramsController {
     return this.programsService.update(id, updateProgramDto);
   }
 
+  @WriteProtected()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a program' })
   @ApiParam({ name: 'id', type: String, description: 'Program id' })
